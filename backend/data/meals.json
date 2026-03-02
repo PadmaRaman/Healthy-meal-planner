@@ -1,0 +1,43 @@
+{
+  "breakfast": {
+    "main": [
+      "Idli",
+      "Dosa",
+      "Pongal"
+    ],
+    "sidedish": [
+      "Sambar",
+      "Coconut Chutney"
+    ]
+  },
+  "lunch": {
+    "main": [
+      "Sambar Rice",
+      "Curd Rice"
+    ],
+    "sidedish": [
+      "Poriyal",
+      "Appalam"
+    ]
+  },
+  "dinner": {
+    "main": [
+      "Chapati",
+      "Dosa"
+    ],
+    "sidedish": [
+      "Kurma",
+      "Chutney"
+    ]
+  },
+  "snack": {
+    "main": [
+      "Sundal",
+      "Vadai"
+    ],
+    "sidedish": [
+      "Tea",
+      "Coffee"
+    ]
+  }
+}
