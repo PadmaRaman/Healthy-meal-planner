@@ -1,4 +1,4 @@
-# Healthy Meal Planner
+# FitMeal South
 
 A web application for planning and managing South Indian meals with grocery list management.
 
