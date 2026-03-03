@@ -6,6 +6,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 //const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
+const username = "admin";
+const password = "fitmeal123";
+
+const basicAuth = "Basic " + btoa(`${username}:${password}`);
+
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -55,7 +60,8 @@ function App() {
     const response = await fetch(`${API_BASE_URL}/update-meals`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": basicAuth
       },
       body: JSON.stringify(mealData)
     });
@@ -78,7 +84,11 @@ function App() {
   // Groceries List Component
   const handleFetchGroceries = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/groceries`);
+      const response = await fetch(`${API_BASE_URL}/groceries`, {
+        headers: {
+          "Authorization": basicAuth
+        }
+      });
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
@@ -110,7 +120,11 @@ function App() {
   // Update Groceries Component
   const handleFetchCurrentGroceries = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/groceries`);
+      const response = await fetch(`${API_BASE_URL}/groceries`, {
+        headers: {
+          "Authorization": basicAuth
+        }
+      });
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
@@ -135,7 +149,8 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/add-groceries`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": basicAuth
         },
         body: JSON.stringify({ category: selectedCategory, items: itemsToAdd })
       });
@@ -159,7 +174,10 @@ function App() {
   const handleRemoveGroceryItem = async (category, itemName) => {
     try {
       const response = await fetch(`${API_BASE_URL}/remove-grocery/${category}/${itemName}`, {
-        method: "POST"
+        method: "POST",
+        headers: {
+          "Authorization": basicAuth
+        }      
       });
 
       const result = await response.json();
@@ -278,7 +296,11 @@ function App() {
 
   // Input JSON Data Component
   const handleFetchCurrentMeals = async () => {
-    const response = await fetch(`${API_BASE_URL}/meals`);
+    const response = await fetch(`${API_BASE_URL}/meals`, {
+        headers: {
+          "Authorization": basicAuth
+        }
+      });
     const data = await response.json();
     setCurrentMeals(data.meals);
     // Pre-populate the input fields with current data
@@ -327,10 +349,11 @@ function App() {
     const response = await fetch(`${API_BASE_URL}/update-meals`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(mealData)
-    });
+        "Content-Type": "application/json", 
+        "Authorization": basicAuth
+        },
+        body: JSON.stringify(mealData)
+      });
 
     const result = await response.json();
     alert(result.message);
@@ -342,7 +365,8 @@ function App() {
     const response = await fetch(`${API_BASE_URL}/remove-meal-item`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": basicAuth
       },
       body: JSON.stringify({
         meal_type: mealType,
@@ -361,7 +385,8 @@ function App() {
     const response = await fetch(`${API_BASE_URL}/generate-meal-plan`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": basicAuth
       },
       body: JSON.stringify({
         breakfast: true,

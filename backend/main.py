@@ -7,8 +7,21 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import os
 import json
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 
 app = FastAPI()
+
+# --------------------------------------------------
+#  Basic Auth Setup
+# --------------------------------------------------
+security = HTTPBasic()
+
+#  Change these in production
+APP_USERNAME = os.getenv("APP_USERNAME", "admin")
+APP_PASSWORD = os.getenv("APP_PASSWORD", "fitmeal123")
+
 
 # --------------------------------------------------
 # ✅ Enable CORS (frontend can call backend)
@@ -20,6 +33,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(
+        credentials.username, APP_USERNAME
+    )
+    correct_password = secrets.compare_digest(
+        credentials.password, APP_PASSWORD
+    )
+
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    return credentials.username
 
 # --------------------------------------------------
 # ✅ File paths
@@ -129,7 +159,7 @@ class RemoveMealRequest(BaseModel):
 # ✅ Root
 # --------------------------------------------------
 @app.get("/")
-def read_root():
+def read_root(username: str = Depends(verify_credentials)):
     return {"message": "Welcome to Healthy South Indian Meal Planner API!"}
 
 
@@ -137,7 +167,7 @@ def read_root():
 # ✅ Generate Weekly Meal Plan
 # --------------------------------------------------
 @app.post("/generate-meal-plan")
-def generate_meal_plan(request: MealRequest):
+def generate_meal_plan(request: MealRequest, username: str = Depends(verify_credentials)):
     weekly_plan = []
     start_date = datetime.now()
 
@@ -189,12 +219,12 @@ def generate_meal_plan(request: MealRequest):
 # ✅ Meals APIs
 # --------------------------------------------------
 @app.get("/meals")
-def get_meals():
+def get_meals(username: str = Depends(verify_credentials)):
     return {"meals": MEALS}
 
 
 @app.post("/update-meals")
-def update_meals(meal_update: MealUpdate):
+def update_meals(meal_update: MealUpdate, username: str = Depends(verify_credentials)):
     global MEALS
 
     MEALS = {
@@ -222,7 +252,7 @@ def update_meals(meal_update: MealUpdate):
 
 
 @app.post("/remove-meal-item")
-def remove_meal_item(request: RemoveMealRequest):
+def remove_meal_item(request: RemoveMealRequest, username: str = Depends(verify_credentials)):
     global MEALS
 
     if (
@@ -244,12 +274,12 @@ def remove_meal_item(request: RemoveMealRequest):
 # ✅ Groceries APIs
 # --------------------------------------------------
 @app.get("/groceries")
-def get_groceries():
+def get_groceries(username: str = Depends(verify_credentials)):
     return {"groceries": GROCERIES}
 
 
 @app.post("/add-groceries")
-def add_groceries(request: GroceryItems):
+def add_groceries(request: GroceryItems, username: str = Depends(verify_credentials)):
     global GROCERIES
 
     if request.category not in GROCERIES:
@@ -265,7 +295,7 @@ def add_groceries(request: GroceryItems):
 
 
 @app.post("/remove-grocery/{category}/{item_name}")
-def remove_grocery(category: str, item_name: str):
+def remove_grocery(category: str, item_name: str, username: str = Depends(verify_credentials)):
     global GROCERIES
 
     if category in GROCERIES and item_name in GROCERIES[category]:
