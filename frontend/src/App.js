@@ -7,6 +7,7 @@ import { setBasicAuth, isLoggedIn, clearBasicAuth } from "./utils/auth";
 import { apiFetch } from "./utils/api";
 
 //const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+// eslint-disable-next-line no-unused-vars
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
 /* const username = "admin";
 const password = "fitmeal123";
@@ -58,7 +59,7 @@ function App() {
         alert("Login failed");
       }
     };
-
+// eslint-disable-next-line no-unused-vars
     const handleLogout = () => {
       clearBasicAuth();
       setLoggedIn(false);
