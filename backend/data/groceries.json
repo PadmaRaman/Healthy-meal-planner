@@ -1,12 +1,12 @@
 {
   "Vegetables": [
-    "Beans",
-    "Potato"
+    "Beans"
   ],
   "Dhal Items": [
     "Moong Dal"
   ],
   "Oil Items": [
-    "Groundnut Oil"
+    "Groundnut Oil",
+    "sesame oil"
   ]
 }

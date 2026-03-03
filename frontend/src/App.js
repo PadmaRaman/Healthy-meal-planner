@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 //useState lets us store form values and results
 //useEffect lets us run code when the page loads
 import jsPDF from "jspdf";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 //const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
@@ -442,23 +443,65 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1>FitMeal South</h1>
+    <div className="container-fluid py-3" style={{ fontFamily: "Arial, sans-serif" }}>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4 pd-5">
+        <div className="container-fluid">
+          <div className="d-flex align-items-center">
+            <img
+              src="/fitmeal_south_logo.png"
+              alt="FitMeal South Logo"
+              style={{ height: "40px", width: "auto", marginRight: "10px" }}
+            />
+            <h1 className="h4 mb-0 fw-bold text-white">FitMeal South</h1>
+          </div>
+        </div>
+      </nav>
     
       {currentPage === "home" && (
-        <div style={{ marginTop: "30px" }}>
-          <button onClick={() => { setCurrentPage("groceries"); handleFetchGroceries(); }} style={buttonStyle}>
-            Groceries List
-          </button>
-          <button onClick={() => { setCurrentPage("updateGroceries"); handleFetchCurrentGroceries(); }} style={buttonStyle}>
-            Update Groceries List
-          </button>
-          <button onClick={() => { setCurrentPage("inputJson"); handleFetchCurrentMeals(); }} style={buttonStyle}>
-            Update Meals Data
-          </button>
-          <button onClick={() => setCurrentPage("mealPlan")} style={buttonStyle}>
-            Generate Meal Plan
-          </button>
+        <div className="mt-4">
+
+          {/* Row 1 */}
+          <div className="row g-3 mb-2">
+            <div className="col-12 col-md-6">
+              <button
+                onClick={() => { setCurrentPage("updateGroceries"); handleFetchCurrentGroceries(); }}
+                className="btn btn-primary w-100 py-3"
+              >
+                Update Groceries
+              </button>
+            </div>
+
+            <div className="col-12 col-md-6">
+              <button
+                onClick={() => { setCurrentPage("groceries"); handleFetchGroceries(); }}
+                className="btn btn-primary w-100 py-3"
+              >
+                Generate Groceries
+              </button>
+            </div>
+          </div>
+
+          {/* Row 2 */}
+          <div className="row g-3">
+            <div className="col-12 col-md-6">
+              <button
+                onClick={() => { setCurrentPage("inputJson"); handleFetchCurrentMeals(); }}
+                className="btn btn-warning w-100 py-3"
+              >
+                Update Meals
+              </button>
+            </div>
+
+            <div className="col-12 col-md-6">
+              <button
+                onClick={() => setCurrentPage("mealPlan")}
+                className="btn btn-warning w-100 py-3"
+              >
+                Generate Meals
+              </button>
+            </div>
+          </div>
+
         </div>
       )}
 

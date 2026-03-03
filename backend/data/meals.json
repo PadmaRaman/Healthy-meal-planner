@@ -3,11 +3,13 @@
     "main": [
       "Idli",
       "Dosa",
-      "Pongal"
+      "Pongal",
+      "Appam"
     ],
     "sidedish": [
       "Sambar",
-      "Coconut Chutney"
+      "Coconut Chutney",
+      "kadala curry"
     ]
   },
   "lunch": {
