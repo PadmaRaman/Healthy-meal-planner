@@ -3,13 +3,16 @@ import { useState, useEffect } from "react";
 //useEffect lets us run code when the page loads
 import jsPDF from "jspdf";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { setBasicAuth, isLoggedIn, clearBasicAuth } from "./utils/auth";
+import { apiFetch } from "./utils/api";
 
 //const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
-const username = "admin";
+/* const username = "admin";
 const password = "fitmeal123";
 
-const basicAuth = "Basic " + btoa(`${username}:${password}`);
+const basicAuth = "Basic " + btoa(`${username}:${password}`);*/
+
 
 
 function App() {
@@ -24,6 +27,9 @@ function App() {
   const [selectedMealCategory, setSelectedMealCategory] = useState("main");
   const [newGroceryItem, setNewGroceryItem] = useState("");
   const [newMealItem, setNewMealItem] = useState("");
+  const [loggedIn, setLoggedIn] = useState(isLoggedIn());
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
   // eslint-disable-next-line no-unused-vars
   const [mealInputs, setMealInputs] = useState({
     breakfast_main: "",
@@ -35,6 +41,29 @@ function App() {
     snack_main: "",
     snack_sidedish: ""
   });
+
+  const handleLogin = async () => {
+      try {
+        setBasicAuth(loginUser, loginPass);
+
+        const res = await apiFetch("/meals"); // test call
+
+        if (!res.ok) {
+          throw new Error("Invalid credentials");
+        }
+
+        setLoggedIn(true);
+      } catch (err) {
+        clearBasicAuth();
+        alert("Login failed");
+      }
+    };
+
+    const handleLogout = () => {
+      clearBasicAuth();
+      setLoggedIn(false);
+    };
+
   // eslint-disable-next-line no-unused-vars
     const handleMealInputChange = (field, value) => 
     {
@@ -57,11 +86,11 @@ function App() {
       snack_sidedish: mealInputs.snack_sidedish.split(",").map(item => item.trim()).filter(item => item)
     };
 
-    const response = await fetch(`${API_BASE_URL}/update-meals`, {
+    const response = await apiFetch("/update-meals", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": basicAuth
+        //"Authorization": basicAuth
       },
       body: JSON.stringify(mealData)
     });
@@ -84,11 +113,7 @@ function App() {
   // Groceries List Component
   const handleFetchGroceries = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/groceries`, {
-        headers: {
-          "Authorization": basicAuth
-        }
-      });
+      const response = await apiFetch("/groceries");
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
@@ -120,9 +145,9 @@ function App() {
   // Update Groceries Component
   const handleFetchCurrentGroceries = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/groceries`, {
+      const response = await apiFetch("/groceries", {
         headers: {
-          "Authorization": basicAuth
+          //"Authorization": basicAuth
         }
       });
       if (!response.ok) {
@@ -146,11 +171,11 @@ function App() {
     try {
       const itemsToAdd = newGroceryItem.split(",").map(item => item.trim()).filter(item => item);
       
-      const response = await fetch(`${API_BASE_URL}/add-groceries`, {
+      const response = await apiFetch("/add-groceries", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": basicAuth
+          //"Authorization": basicAuth
         },
         body: JSON.stringify({ category: selectedCategory, items: itemsToAdd })
       });
@@ -173,10 +198,10 @@ function App() {
 
   const handleRemoveGroceryItem = async (category, itemName) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/remove-grocery/${category}/${itemName}`, {
+      const response = await apiFetch(`/remove-grocery/${category}/${itemName}`, {
         method: "POST",
         headers: {
-          "Authorization": basicAuth
+          //"Authorization": basicAuth
         }      
       });
 
@@ -296,9 +321,9 @@ function App() {
 
   // Input JSON Data Component
   const handleFetchCurrentMeals = async () => {
-    const response = await fetch(`${API_BASE_URL}/meals`, {
+    const response = await apiFetch("/meals", {
         headers: {
-          "Authorization": basicAuth
+          //"Authorization": basicAuth
         }
       });
     const data = await response.json();
@@ -346,11 +371,11 @@ function App() {
       }
     });
 
-    const response = await fetch(`${API_BASE_URL}/update-meals`, {
+    const response = await apiFetch("/update-meals", {
       method: "POST",
       headers: {
         "Content-Type": "application/json", 
-        "Authorization": basicAuth
+        //"Authorization": basicAuth
         },
         body: JSON.stringify(mealData)
       });
@@ -362,11 +387,11 @@ function App() {
   };
 
   const handleRemoveMealItem = async (mealType, category, itemName) => {
-    const response = await fetch(`${API_BASE_URL}/remove-meal-item`, {
+    const response = await apiFetch("/remove-meal-item", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": basicAuth
+        //"Authorization": basicAuth
       },
       body: JSON.stringify({
         meal_type: mealType,
@@ -382,11 +407,11 @@ function App() {
 
   // Generate Meal Plan Component
   const handleGenerateMealPlan = async () => {
-    const response = await fetch(`${API_BASE_URL}/generate-meal-plan`, {
+    const response = await apiFetch("/generate-meal-plan", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": basicAuth
+        //"Authorization": basicAuth
       },
       body: JSON.stringify({
         breakfast: true,
@@ -466,6 +491,40 @@ function App() {
     borderLeft: "4px solid #4CAF50",
     borderRadius: "4px"
   };
+
+
+// Login Functionality
+  if (!loggedIn) {
+  return (
+    <div className="container d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+      <div className="card p-4 shadow" style={{ width: "320px" }}>
+        <h4 className="mb-3 text-center">FitMeal Login</h4>
+
+        <input
+          className="form-control mb-2"
+          placeholder="Username"
+          value={loginUser}
+          onChange={(e) => setLoginUser(e.target.value)}
+        />
+
+        <input
+          type="password"
+          className="form-control mb-3"
+          placeholder="Password"
+          value={loginPass}
+          onChange={(e) => setLoginPass(e.target.value)}
+        />
+
+        <button className="btn btn-success w-100" onClick={handleLogin}>
+          Login
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+
 
   return (
     <div className="container-fluid py-3" style={{ fontFamily: "Arial, sans-serif" }}>
