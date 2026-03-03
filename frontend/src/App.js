@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 //useEffect lets us run code when the page loads
 import jsPDF from "jspdf";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
-//const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
+//const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
