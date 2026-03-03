@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 //useEffect lets us run code when the page loads
 import jsPDF from "jspdf";
 
-//const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
-const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com/";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+//const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -18,6 +18,7 @@ function App() {
   const [selectedMealCategory, setSelectedMealCategory] = useState("main");
   const [newGroceryItem, setNewGroceryItem] = useState("");
   const [newMealItem, setNewMealItem] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [mealInputs, setMealInputs] = useState({
     breakfast_main: "",
     breakfast_sidedish: "",
@@ -28,6 +29,40 @@ function App() {
     snack_main: "",
     snack_sidedish: ""
   });
+  // eslint-disable-next-line no-unused-vars
+    const handleMealInputChange = (field, value) => 
+    {
+    setMealInputs({
+      ...mealInputs,
+      [field]: value
+    });
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const handleUpdateMeals = async () => {
+    const mealData = {
+      breakfast_main: mealInputs.breakfast_main.split(",").map(item => item.trim()).filter(item => item),
+      breakfast_sidedish: mealInputs.breakfast_sidedish.split(",").map(item => item.trim()).filter(item => item),
+      lunch_main: mealInputs.lunch_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_sidedish: mealInputs.lunch_sidedish.split(",").map(item => item.trim()).filter(item => item),
+      dinner_main: mealInputs.dinner_main.split(",").map(item => item.trim()).filter(item => item),
+      dinner_sidedish: mealInputs.dinner_sidedish.split(",").map(item => item.trim()).filter(item => item),
+      snack_main: mealInputs.snack_main.split(",").map(item => item.trim()).filter(item => item),
+      snack_sidedish: mealInputs.snack_sidedish.split(",").map(item => item.trim()).filter(item => item)
+    };
+
+    const response = await fetch(`${API_BASE_URL}/update-meals`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(mealData)
+    });
+
+    const result = await response.json();
+    alert(result.message);
+    setCurrentMeals(result.meals);
+  };
 
   // Auto-fetch groceries when page changes to groceries or updateGroceries
   useEffect(() => {
@@ -258,37 +293,7 @@ function App() {
     });
   };
 
-  const handleMealInputChange = (field, value) => {
-    setMealInputs({
-      ...mealInputs,
-      [field]: value
-    });
-  };
 
-  const handleUpdateMeals = async () => {
-    const mealData = {
-      breakfast_main: mealInputs.breakfast_main.split(",").map(item => item.trim()).filter(item => item),
-      breakfast_sidedish: mealInputs.breakfast_sidedish.split(",").map(item => item.trim()).filter(item => item),
-      lunch_main: mealInputs.lunch_main.split(",").map(item => item.trim()).filter(item => item),
-      lunch_sidedish: mealInputs.lunch_sidedish.split(",").map(item => item.trim()).filter(item => item),
-      dinner_main: mealInputs.dinner_main.split(",").map(item => item.trim()).filter(item => item),
-      dinner_sidedish: mealInputs.dinner_sidedish.split(",").map(item => item.trim()).filter(item => item),
-      snack_main: mealInputs.snack_main.split(",").map(item => item.trim()).filter(item => item),
-      snack_sidedish: mealInputs.snack_sidedish.split(",").map(item => item.trim()).filter(item => item)
-    };
-
-    const response = await fetch(`${API_BASE_URL}/update-meals`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(mealData)
-    });
-
-    const result = await response.json();
-    alert(result.message);
-    setCurrentMeals(result.meals);
-  };
 
   const handleAddMealItem = async () => {
     if (!newMealItem.trim() || !selectedMealType) {
