@@ -135,14 +135,14 @@ class MealRequest(BaseModel):
 
 
 class MealUpdate(BaseModel):
-    breakfast_main: list
-    breakfast_sidedish: list
-    lunch_main: list
-    lunch_secondmain: list
-    lunch_poriyal: list
-    dinner_main: list
-    dinner_sidedish: list
-    snack_main: list
+    breakfast_main: list = []
+    breakfast_sidedish: list = []
+    lunch_main: list = []
+    lunch_secondmain: list = []
+    lunch_poriyal: list = []
+    dinner_main: list = []
+    dinner_sidedish: list = []
+    snack_main: list = []
 
 
 class GroceryItems(BaseModel):
