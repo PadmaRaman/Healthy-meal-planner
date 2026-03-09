@@ -95,7 +95,8 @@ DEFAULT_MEALS = {
     },
     "lunch": {
         "main": ["Sambar Rice", "Curd Rice"],
-        "sidedish": ["Poriyal", "Appalam"],
+        "second_main": ["Poriyal", "Appalam"],
+        "poriyal": ["Beans Poriyal", "Carrot Poriyal"],
     },
     "dinner": {
         "main": ["Chapati", "Dosa"],
@@ -137,11 +138,11 @@ class MealUpdate(BaseModel):
     breakfast_main: list
     breakfast_sidedish: list
     lunch_main: list
-    lunch_sidedish: list
+    lunch_secondmain: list
+    lunch_poriyal: list
     dinner_main: list
     dinner_sidedish: list
     snack_main: list
-    snack_sidedish: list
 
 
 class GroceryItems(BaseModel):
@@ -189,7 +190,8 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
             if request.lunch:
                 day_plan["lunch"] = {
                     "main": random.choice(MEALS["lunch"]["main"]),
-                    "sidedish": random.choice(MEALS["lunch"]["sidedish"]),
+                    "second_main": random.choice(MEALS["lunch"]["second_main"]),
+                    "poriyal": random.choice(MEALS["lunch"]["poriyal"]),
                 }
 
             if request.dinner:
@@ -201,7 +203,6 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
             if request.snack:
                 day_plan["snack"] = {
                     "main": random.choice(MEALS["snack"]["main"]),
-                    "sidedish": random.choice(MEALS["snack"]["sidedish"]),
                 }
 
         except KeyError:
@@ -234,7 +235,8 @@ def update_meals(meal_update: MealUpdate, username: str = Depends(verify_credent
         },
         "lunch": {
             "main": meal_update.lunch_main,
-            "sidedish": meal_update.lunch_sidedish,
+            "second_main": meal_update.lunch_secondmain,
+            "poriyal": meal_update.lunch_poriyal,
         },
         "dinner": {
             "main": meal_update.dinner_main,
@@ -242,7 +244,6 @@ def update_meals(meal_update: MealUpdate, username: str = Depends(verify_credent
         },
         "snack": {
             "main": meal_update.snack_main,
-            "sidedish": meal_update.snack_sidedish,
         },
     }
 

@@ -1,34 +1,106 @@
 {
   "breakfast": {
     "main": [
-      "Dosa"
+      "Idli",
+      "Dosa",
+      "Rava Upma",
+      "Semiya Upma",
+      "Kothumai Rava Upma",
+      "Ragi Dosa",
+      "Kambu Dosa",
+      "Kichadi",
+      "Pongal",
+      "Poha",
+      "Uthapam"
     ],
     "sidedish": [
-      "Sambar"
+      "Sambar",
+      "Pudhina Chutney",
+      "Onion Chutney",
+      "Cocunut Chutney",
+      "Bombay Chutney",
+      "Peanut Chutney",
+      "Tomato Chutney",
+      "Kathirikai Gothsu",
+      "Onion Gothsu",
+      "Tomato Gothsu",
+      "Kumbakonam Gothsu"
     ]
   },
   "lunch": {
     "main": [
-      "Meals"
+      "Murungakkai Sambar",
+      "Kathirikai Sambar",
+      "Mullangi Sambar",
+      "Vengaya Sambar",
+      "Poosanikai Sambar",
+      "Peerkangai Sambar",
+      "Vendakkai Sambar",
+      "Chow Chow Sambar",
+      "Capsicum Sambar",
+      "Paavakai Sambar",
+      "Mixed Vegetable Sambar",
+      "Moong Dal Sambar",
+      "Murungai Keerai Sambar",
+      "Arai Keerai Sambar",
+      "Mulai Keerai Sambar",
+      "Manathakali Keerai Sambar",
+      "Kollu Sambar",
+      "Ennai Kathirikai",
+      "Menthool Pulusu",
+      "White Poosinikai Mor kuzhambu",
+      "Vendakkai Mor kuzhambu",
+      "Pavakai Sambar"
     ],
-    "sidedish": [
-      "Poriyal"
+    "second_main": [
+      "Poondu Rasam",
+      "Rasam",
+      "Thipili Rasam"
+    ],
+    "poriyal": [
+      "Potato Poriyal",
+      "Cabbage Poriyal",
+      "Brinjal Poriyal",
+      "Beans Usili Poriyal"
     ]
   },
   "dinner": {
     "main": [
-      "Chapati"
+      "Idli",
+      "Dosa",
+      "Rava Upma",
+      "Semiya Upma",
+      "Kothumai Rava Upma",
+      "Ragi Dosa",
+      "Kambu Dosa",
+      "Kichadi",
+      "Pongal",
+      "Poha",
+      "Uthapam"
     ],
     "sidedish": [
-      "Kurma"
+      "Sambar",
+      "Pudhina Chutney",
+      "Onion Chutney",
+      "Cocunut Chutney",
+      "Bombay Chutney",
+      "Peanut Chutney",
+      "Tomato Chutney",
+      "Kathirikai Gothsu",
+      "Onion Gothsu",
+      "Tomato Gothsu",
+      "Kumbakonam Gothsu"
     ]
   },
   "snack": {
     "main": [
-      "Sundal"
-    ],
-    "sidedish": [
-      "Tea"
+      "PachaiPayiru Sundal",
+      "White ChickPeas Sundal",
+      "Black ChichPeas Sundal",
+      "White Karamani Sundal",
+      "Black Karamani Sundal",
+      "Pattani Sundal",
+      "Kollu Sundal"
     ]
   }
 }
