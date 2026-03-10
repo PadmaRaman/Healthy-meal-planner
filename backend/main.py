@@ -138,7 +138,7 @@ class MealUpdate(BaseModel):
     breakfast_main: list = []
     breakfast_sidedish: list = []
     lunch_main: list = []
-    lunch_secondmain: list = []
+    lunch_second_main: list = []
     lunch_poriyal: list = []
     dinner_main: list = []
     dinner_sidedish: list = []
@@ -173,7 +173,7 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
     weekly_plan = []
     start_date = datetime.now()
 
-    # Copy meal lists so original data stays intact
+    # Copy lists
     breakfast_main = MEALS["breakfast"]["main"][:]
     breakfast_side = MEALS["breakfast"]["sidedish"][:]
 
@@ -186,18 +186,27 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
 
     snack_main = MEALS["snack"]["main"][:]
 
-    # Shuffle lists
+    # Shuffle
     random.shuffle(breakfast_main)
     random.shuffle(breakfast_side)
-
     random.shuffle(lunch_main)
     random.shuffle(lunch_second)
     random.shuffle(lunch_poriyal)
-
     random.shuffle(dinner_main)
     random.shuffle(dinner_side)
-
     random.shuffle(snack_main)
+
+    # Track used items
+    used = {
+        "breakfast_main": set(),
+        "breakfast_side": set(),
+        "lunch_main": set(),
+        "lunch_second": set(),
+        "lunch_poriyal": set(),
+        "dinner_main": set(),
+        "dinner_side": set(),
+        "snack_main": set(),
+    }
 
     for day in range(7):
 
@@ -208,34 +217,79 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
             "date": current_date.strftime("%d-%m-%Y"),
         }
 
-        if request.breakfast and breakfast_main and breakfast_side:
-            day_plan["breakfast"] = {
-                "main": breakfast_main.pop(0),
-                "sidedish": breakfast_side.pop(0),
-            }
+        # BREAKFAST
+        if request.breakfast:
+            main = next((m for m in breakfast_main if m not in used["breakfast_main"]), None)
+            side = next((s for s in breakfast_side if s not in used["breakfast_side"]), None)
 
-        if request.lunch and lunch_main and lunch_second and lunch_poriyal:
+            if main and side:
+                used["breakfast_main"].add(main)
+                used["breakfast_side"].add(side)
+
+                day_plan["breakfast"] = {
+                    "main": main,
+                    "sidedish": side,
+                }
+
+        # LUNCH
+        if request.lunch:
+
+            main = next((m for m in lunch_main if m not in used["lunch_main"]), None)
+            if main is None and lunch_main:
+                main = random.choice(lunch_main)
+
+            second = next((s for s in lunch_second if s not in used["lunch_second"]), None)
+            if second is None and lunch_second:
+                second = random.choice(lunch_second)
+
+            poriyal = next((p for p in lunch_poriyal if p not in used["lunch_poriyal"]), None)
+            if poriyal is None and lunch_poriyal:
+                poriyal = random.choice(lunch_poriyal)
+
+            if main:
+                used["lunch_main"].add(main)
+
+            if second:
+                used["lunch_second"].add(second)
+
+            if poriyal:
+                used["lunch_poriyal"].add(poriyal)
+
             day_plan["lunch"] = {
-                "main": lunch_main.pop(0),
-                "second_main": lunch_second.pop(0),
-                "poriyal": lunch_poriyal.pop(0),
-            }
+                "main": main,
+                "second_main": second,
+                "poriyal": poriyal,
+            }   
 
-        if request.dinner and dinner_main and dinner_side:
-            day_plan["dinner"] = {
-                "main": dinner_main.pop(0),
-                "sidedish": dinner_side.pop(0),
-            }
+        # DINNER
+        if request.dinner:
+            main = next((m for m in dinner_main if m not in used["dinner_main"]), None)
+            side = next((s for s in dinner_side if s not in used["dinner_side"]), None)
 
-        if request.snack and snack_main:
-            day_plan["snack"] = {
-                "main": snack_main.pop(0),
-            }
+            if main and side:
+                used["dinner_main"].add(main)
+                used["dinner_side"].add(side)
+
+                day_plan["dinner"] = {
+                    "main": main,
+                    "sidedish": side,
+                }
+
+        # SNACK
+        if request.snack:
+            snack = next((s for s in snack_main if s not in used["snack_main"]), None)
+
+            if snack:
+                used["snack_main"].add(snack)
+
+                day_plan["snack"] = {
+                    "main": snack,
+                }
 
         weekly_plan.append(day_plan)
 
     return {
-        "note": "Weekly Meal Plan generated (unique meals)",
+        "note": "Weekly Meal Plan generated (fully unique)",
         "weekly_plan": weekly_plan,
     }
 
@@ -259,7 +313,7 @@ def update_meals(meal_update: MealUpdate, username: str = Depends(verify_credent
         },
         "lunch": {
             "main": meal_update.lunch_main,
-            "second_main": meal_update.lunch_secondmain,
+            "second_main": meal_update.lunch_second_main,
             "poriyal": meal_update.lunch_poriyal,
         },
         "dinner": {
