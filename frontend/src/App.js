@@ -939,13 +939,13 @@ function App() {
                     <p><b>Breakfast:</b> {day.breakfast.main} + {day.breakfast.sidedish}</p>
                   )}
                   {day.lunch && (
-                    <p><b>Lunch:</b> {day.lunch.main} + {day.lunch.sidedish}</p>
+                    <p><b>Lunch:</b> {day.lunch.main} + {day.lunch.second_main} + {day.lunch.poriyal}</p>
                   )}
                   {day.dinner && (
                     <p><b>Dinner:</b> {day.dinner.main} + {day.dinner.sidedish}</p>
                   )}
                   {day.snack && (
-                    <p><b>Snack:</b> {day.snack.main} + {day.snack.sidedish}</p>
+                    <p><b>Snack:</b> {day.snack.main}</p>
                   )}
                 </div>
               ))}

@@ -52,16 +52,24 @@
       "Vendakkai Mor kuzhambu",
       "Pavakai Sambar"
     ],
-    "second_main": [
-      "Poondu Rasam",
-      "Rasam",
-      "Thipili Rasam"
-    ],
+    "second_main": [],
     "poriyal": [
       "Potato Poriyal",
       "Cabbage Poriyal",
       "Brinjal Poriyal",
-      "Beans Usili Poriyal"
+      "Beans Usili Poriyal",
+      "Beetroot Poriyal",
+      "Keerai Poriyal",
+      "Baby Potato Poriyal",
+      "Kothavarangai Poriyal",
+      "Kovakkai Poriyal",
+      "Avarakkai Poriyal",
+      "Vendakkai Poriyal",
+      "Vazhaithandu Poriyal",
+      "Vazhaipoo poriyal",
+      "Vazhakkai Poriyal",
+      "Beans Cocunut Poriyal",
+      "Carrot BEans Poriyal"
     ]
   },
   "dinner": {
@@ -100,7 +108,13 @@
       "White Karamani Sundal",
       "Black Karamani Sundal",
       "Pattani Sundal",
-      "Kollu Sundal"
+      "Kollu Sundal",
+      "Makhana",
+      "Apple",
+      "Banana",
+      "Cauliflower Pakoda",
+      "Brocolli Pakoda",
+      "Onion Pakoda"
     ]
   }
 }

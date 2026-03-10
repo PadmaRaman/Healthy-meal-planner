@@ -169,10 +169,38 @@ def read_root(username: str = Depends(verify_credentials)):
 # --------------------------------------------------
 @app.post("/generate-meal-plan")
 def generate_meal_plan(request: MealRequest, username: str = Depends(verify_credentials)):
+
     weekly_plan = []
     start_date = datetime.now()
 
+    # Copy meal lists so original data stays intact
+    breakfast_main = MEALS["breakfast"]["main"][:]
+    breakfast_side = MEALS["breakfast"]["sidedish"][:]
+
+    lunch_main = MEALS["lunch"]["main"][:]
+    lunch_second = MEALS["lunch"]["second_main"][:]
+    lunch_poriyal = MEALS["lunch"]["poriyal"][:]
+
+    dinner_main = MEALS["dinner"]["main"][:]
+    dinner_side = MEALS["dinner"]["sidedish"][:]
+
+    snack_main = MEALS["snack"]["main"][:]
+
+    # Shuffle lists
+    random.shuffle(breakfast_main)
+    random.shuffle(breakfast_side)
+
+    random.shuffle(lunch_main)
+    random.shuffle(lunch_second)
+    random.shuffle(lunch_poriyal)
+
+    random.shuffle(dinner_main)
+    random.shuffle(dinner_side)
+
+    random.shuffle(snack_main)
+
     for day in range(7):
+
         current_date = start_date + timedelta(days=day)
 
         day_plan = {
@@ -180,38 +208,34 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
             "date": current_date.strftime("%d-%m-%Y"),
         }
 
-        try:
-            if request.breakfast:
-                day_plan["breakfast"] = {
-                    "main": random.choice(MEALS["breakfast"]["main"]),
-                    "sidedish": random.choice(MEALS["breakfast"]["sidedish"]),
-                }
+        if request.breakfast and breakfast_main and breakfast_side:
+            day_plan["breakfast"] = {
+                "main": breakfast_main.pop(0),
+                "sidedish": breakfast_side.pop(0),
+            }
 
-            if request.lunch:
-                day_plan["lunch"] = {
-                    "main": random.choice(MEALS["lunch"]["main"]),
-                    "second_main": random.choice(MEALS["lunch"]["second_main"]),
-                    "poriyal": random.choice(MEALS["lunch"]["poriyal"]),
-                }
+        if request.lunch and lunch_main and lunch_second and lunch_poriyal:
+            day_plan["lunch"] = {
+                "main": lunch_main.pop(0),
+                "second_main": lunch_second.pop(0),
+                "poriyal": lunch_poriyal.pop(0),
+            }
 
-            if request.dinner:
-                day_plan["dinner"] = {
-                    "main": random.choice(MEALS["dinner"]["main"]),
-                    "sidedish": random.choice(MEALS["dinner"]["sidedish"]),
-                }
+        if request.dinner and dinner_main and dinner_side:
+            day_plan["dinner"] = {
+                "main": dinner_main.pop(0),
+                "sidedish": dinner_side.pop(0),
+            }
 
-            if request.snack:
-                day_plan["snack"] = {
-                    "main": random.choice(MEALS["snack"]["main"]),
-                }
-
-        except KeyError:
-            return {"error": "Meals data structure is incorrect"}
+        if request.snack and snack_main:
+            day_plan["snack"] = {
+                "main": snack_main.pop(0),
+            }
 
         weekly_plan.append(day_plan)
 
     return {
-        "note": "Weekly Meal Plan generated",
+        "note": "Weekly Meal Plan generated (unique meals)",
         "weekly_plan": weekly_plan,
     }
 
