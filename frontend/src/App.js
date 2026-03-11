@@ -427,6 +427,73 @@ function App() {
     setMealPlan(data);
   };
 
+
+  // Download Meal Plan Component as PDF
+  const handleDownloadMealPlanPDF = () => {
+
+  if (!mealPlan || !mealPlan.weekly_plan) {
+    alert("Please generate a meal plan first");
+    return;
+  }
+
+  const doc = new jsPDF();
+
+  doc.setFontSize(18);
+  doc.text("FitMeal South", 20, 20);
+
+  doc.setFontSize(12);
+  doc.text("Weekly Meal Plan", 20, 30);
+
+  doc.setFontSize(10);
+  const today = new Date().toLocaleDateString();
+  doc.text(`Generated on: ${today}`, 20, 38);
+
+  let y = 50;
+  const pageHeight = doc.internal.pageSize.height;
+
+  mealPlan.weekly_plan.forEach((day) => {
+
+    if (y > pageHeight - 30) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFont(undefined, "bold");
+    doc.text(`${day.day} - ${day.date}`, 20, y);
+    y += 8;
+
+    doc.setFont(undefined, "normal");
+
+    if (day.breakfast) {
+      doc.text(`Breakfast: ${day.breakfast.main} + ${day.breakfast.sidedish}`, 25, y);
+      y += 6;
+    }
+
+    if (day.lunch) {
+      doc.text(`Lunch: ${day.lunch.main} + ${day.lunch.second_main} + ${day.lunch.poriyal}`, 25, y);
+      y += 6;
+    }
+
+    if (day.dinner) {
+      doc.text(`Dinner: ${day.dinner.main} + ${day.dinner.sidedish}`, 25, y);
+      y += 6;
+    }
+
+    if (day.snack) {
+      doc.text(`Snack: ${day.snack.main}`, 25, y);
+      y += 6;
+    }
+
+    y += 6;
+  });
+
+  doc.setFontSize(9);
+  doc.setTextColor(150);
+  doc.text("Generated from FitMeal South Planner", 20, pageHeight - 10);
+
+  doc.save(`meal-plan-${new Date().toISOString().split("T")[0]}.pdf`);
+};
+
   // Style definitions
   const buttonStyle = {
     margin: "10px",
@@ -925,9 +992,19 @@ function App() {
         <div>
           <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>Back to Home</button>
           <h2>Generate Meal Plan</h2>
+
           <button onClick={handleGenerateMealPlan} style={buttonStyle}>
             Generate 7-Day Meal Plan
           </button>
+
+          {mealPlan && (
+            <button
+              onClick={handleDownloadMealPlanPDF}
+              style={{ ...buttonStyle, backgroundColor: "#FF5722" }}
+            >
+              📄 Download Meal Plan PDF
+            </button>
+          )}
 
           {mealPlan && (
             <div style={{ marginTop: "30px" }}>

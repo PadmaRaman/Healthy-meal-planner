@@ -171,7 +171,9 @@ def read_root(username: str = Depends(verify_credentials)):
 def generate_meal_plan(request: MealRequest, username: str = Depends(verify_credentials)):
 
     weekly_plan = []
-    start_date = datetime.now()
+    today = datetime.now()
+    days_since_sunday = (today.weekday() + 1) % 7
+    start_date = today - timedelta(days=days_since_sunday)
 
     # Copy lists
     breakfast_main = MEALS["breakfast"]["main"][:]
@@ -289,9 +291,10 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
         weekly_plan.append(day_plan)
 
     return {
-        "note": "Weekly Meal Plan generated (fully unique)",
-        "weekly_plan": weekly_plan,
-    }
+    "week_start": start_date.strftime("%d-%m-%Y"),
+    "week_end": (start_date + timedelta(days=6)).strftime("%d-%m-%Y"),
+    "weekly_plan": weekly_plan
+}
 
 
 # --------------------------------------------------
