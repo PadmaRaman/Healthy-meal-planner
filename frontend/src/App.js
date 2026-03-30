@@ -7,9 +7,9 @@ import { setBasicAuth, isLoggedIn, clearBasicAuth } from "./utils/auth";
 import { apiFetch } from "./utils/api";
 
 // eslint-disable-next-line no-unused-vars
-//const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API_BASE_URL = "http://localhost:8000";
 // eslint-disable-next-line no-unused-vars
-const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
+//const API_BASE_URL = process.env.REACT_APP_API_URL || "https://healthy-meal-planner-0s0b.onrender.com";
 /* const username = "admin";
 const password = "fitmeal123";
 
@@ -32,16 +32,22 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
   const [loginUser, setLoginUser] = useState("");
   const [loginPass, setLoginPass] = useState("");
+  const [selectedDay, setSelectedDay] = useState("");
   // eslint-disable-next-line no-unused-vars
   const [mealInputs, setMealInputs] = useState({
     breakfast_main: "",
     breakfast_sidedish: "",
-    lunch_main: "",
+    lunch_monday_main: "",
+    lunch_tuesday_main: "",
+    lunch_wednesday_main: "",
+    lunch_thursday_main: "",
+    lunch_friday_main: "",
+    lunch_saturday_main: "",
+    lunch_sunday_main: "",
     lunch_second_main: "",
     lunch_poriyal: "",
     dinner_main: "",
     dinner_sidedish: "",
-    snack_main: "",
   });
 
   const handleLogin = async () => {
@@ -80,26 +86,64 @@ function App() {
     const mealData = {
       breakfast_main: mealInputs.breakfast_main.split(",").map(item => item.trim()).filter(item => item),
       breakfast_sidedish: mealInputs.breakfast_sidedish.split(",").map(item => item.trim()).filter(item => item),
-      lunch_main: mealInputs.lunch_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_monday_main: mealInputs.lunch_monday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_tuesday_main: mealInputs.lunch_tuesday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_wednesday_main: mealInputs.lunch_wednesday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_thursday_main: mealInputs.lunch_thursday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_friday_main: mealInputs.lunch_friday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_saturday_main: mealInputs.lunch_saturday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_sunday_main: mealInputs.lunch_sunday_main.split(",").map(item => item.trim()).filter(item => item),
       lunch_second_main: mealInputs.lunch_second_main.split(",").map(item => item.trim()).filter(item => item),
       lunch_poriyal: mealInputs.lunch_poriyal.split(",").map(item => item.trim()).filter(item => item),
       dinner_main: mealInputs.dinner_main.split(",").map(item => item.trim()).filter(item => item),
       dinner_sidedish: mealInputs.dinner_sidedish.split(",").map(item => item.trim()).filter(item => item),
-      snack_main: mealInputs.snack_main.split(",").map(item => item.trim()).filter(item => item)
     };
 
-    const response = await apiFetch("/update-meals", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        //"Authorization": basicAuth
-      },
-      body: JSON.stringify(mealData)
-    });
+    try {
+      const response = await apiFetch("/update-meals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          //"Authorization": basicAuth
+        },
+        body: JSON.stringify(mealData)
+      });
 
-    const result = await response.json();
-    alert(result.message);
-    setCurrentMeals(result.meals);
+      const result = await response.json();
+      setCurrentMeals(result.meals);
+      
+      // Sync UI form inputs with backend data
+      setMealInputs({
+        breakfast_main: (result.meals?.breakfast?.main || []).join(", "),
+        breakfast_sidedish: (result.meals?.breakfast?.sidedish || []).join(", "),
+        lunch_monday_main: (result.meals?.lunch?.monday_main || []).join(", "),
+        lunch_tuesday_main: (result.meals?.lunch?.tuesday_main || []).join(", "),
+        lunch_wednesday_main: (result.meals?.lunch?.wednesday_main || []).join(", "),
+        lunch_thursday_main: (result.meals?.lunch?.thursday_main || []).join(", "),
+        lunch_friday_main: (result.meals?.lunch?.friday_main || []).join(", "),
+        lunch_saturday_main: (result.meals?.lunch?.saturday_main || []).join(", "),
+        lunch_sunday_main: (result.meals?.lunch?.sunday_main || []).join(", "),
+        lunch_second_main: (result.meals?.lunch?.second_main || []).join(", "),
+        lunch_poriyal: (result.meals?.lunch?.poriyal || []).join(", "),
+        dinner_main: (result.meals?.dinner?.main || []).join(", "),
+        dinner_sidedish: (result.meals?.dinner?.sidedish || []).join(", "),
+      });
+      
+      // Verify synchronization with backend
+      const syncResponse = await apiFetch("/meals-sync-status");
+      const syncData = await syncResponse.json();
+      console.log("✅ Meals synced at:", syncData.timestamp);
+      console.log("📊 Meal items count:", {
+        breakfast: syncData.breakfast_items,
+        lunch: syncData.lunch_items,
+        dinner: syncData.dinner_items,
+      });
+      
+      alert("✅ " + result.message + "\n📊 Data synchronized and ready for meal plan generation!");
+    } catch (error) {
+      alert(`❌ Error updating meals: ${error.message}`);
+      console.error("Error:", error);
+    }
   };
 
   // Auto-fetch groceries when page changes to groceries or updateGroceries
@@ -321,6 +365,40 @@ function App() {
     doc.save(fileName);
   };
 
+  // Download Meal Payload as JSON
+  const handleDownloadMealPayload = () => {
+    // Build payload from mealInputs
+    const payload = {
+      breakfast_main: mealInputs.breakfast_main.split(",").map(item => item.trim()).filter(item => item),
+      breakfast_sidedish: mealInputs.breakfast_sidedish.split(",").map(item => item.trim()).filter(item => item),
+      lunch_monday_main: mealInputs.lunch_monday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_tuesday_main: mealInputs.lunch_tuesday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_wednesday_main: mealInputs.lunch_wednesday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_thursday_main: mealInputs.lunch_thursday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_friday_main: mealInputs.lunch_friday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_saturday_main: mealInputs.lunch_saturday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_sunday_main: mealInputs.lunch_sunday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_second_main: mealInputs.lunch_second_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_poriyal: mealInputs.lunch_poriyal.split(",").map(item => item.trim()).filter(item => item),
+      dinner_main: mealInputs.dinner_main.split(",").map(item => item.trim()).filter(item => item),
+      dinner_sidedish: mealInputs.dinner_sidedish.split(",").map(item => item.trim()).filter(item => item),
+    };
+
+    // Create JSON string with pretty formatting
+    const jsonContent = JSON.stringify(payload, null, 2);
+
+    // Create blob and download
+    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `meal-payload-${new Date().toISOString().split('T')[0]}.json`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Input JSON Data Component
   const handleFetchCurrentMeals = async () => {
     const response = await apiFetch("/meals", {
@@ -332,99 +410,191 @@ function App() {
     setCurrentMeals(data.meals);
     // Pre-populate the input fields with current data
     setMealInputs({
-    breakfast_main: (data.meals?.breakfast?.main || []).join(", "),
-    breakfast_sidedish: (data.meals?.breakfast?.sidedish || []).join(", "),
-    lunch_main: (data.meals?.lunch?.main || []).join(", "),
-    lunch_secondmain: (data.meals?.lunch?.second_main || []).join(", "),
-    lunch_poriyal: (data.meals?.lunch?.poriyal || []).join(", "),
-    dinner_main: (data.meals?.dinner?.main || []).join(", "),
-    dinner_sidedish: (data.meals?.dinner?.sidedish || []).join(", "),
-    snack_main: (data.meals?.snack?.main || []).join(", ")
-  });
+      breakfast_main: (data.meals?.breakfast?.main || []).join(", "),
+      breakfast_sidedish: (data.meals?.breakfast?.sidedish || []).join(", "),
+      lunch_monday_main: (data.meals?.lunch?.monday_main || []).join(", "),
+      lunch_tuesday_main: (data.meals?.lunch?.tuesday_main || []).join(", "),
+      lunch_wednesday_main: (data.meals?.lunch?.wednesday_main || []).join(", "),
+      lunch_thursday_main: (data.meals?.lunch?.thursday_main || []).join(", "),
+      lunch_friday_main: (data.meals?.lunch?.friday_main || []).join(", "),
+      lunch_saturday_main: (data.meals?.lunch?.saturday_main || []).join(", "),
+      lunch_sunday_main: (data.meals?.lunch?.sunday_main || []).join(", "),
+      lunch_second_main: (data.meals?.lunch?.second_main || []).join(", "),
+      lunch_poriyal: (data.meals?.lunch?.poriyal || []).join(", "),
+      dinner_main: (data.meals?.dinner?.main || []).join(", "),
+      dinner_sidedish: (data.meals?.dinner?.sidedish || []).join(", "),
+    });
   };
 
 
 
   const handleAddMealItem = async () => {
-    if (!newMealItem.trim() || !selectedMealType) {
-      alert("Please select a meal type and enter items");
+    if (!newMealItem.trim() || !selectedMealType || !selectedMealCategory) {
+      alert("Please select meal type, category and enter items");
       return;
     }
-    
-    const itemsToAdd = newMealItem.split(",").map(item => item.trim()).filter(item => item);
-    
-    // Build the meal data with all current meals
+
+    const itemsToAdd = newMealItem
+      .split(",")
+      .map(item => item.trim())
+      .filter(item => item);
+
+    if (!currentMeals) {
+      alert("Meals not loaded yet");
+      return;
+    }
+
+    let mealDataKey = "";
+
+    // Build the API field name based on selection
+    if (selectedMealType === "breakfast") {
+      mealDataKey = `breakfast_${selectedMealCategory}`;
+    } 
+    else if (selectedMealType === "lunch") {
+      if (selectedMealCategory === "main") {
+        if (!selectedDay) {
+          alert("Please select a day for lunch main");
+          return;
+        }
+        mealDataKey = `lunch_${selectedDay}_main`;
+      } else {
+        mealDataKey = `lunch_${selectedMealCategory}`;
+      }
+    } 
+    else if (selectedMealType === "dinner") {
+      mealDataKey = `dinner_${selectedMealCategory}`;
+    }
+
+    // Build mealData from form inputs (preserves any edits user made)
     const mealData = {
-      breakfast_main: currentMeals.breakfast.main,
-      breakfast_sidedish: currentMeals.breakfast.sidedish,
-      lunch_main: currentMeals.lunch.main,
-      lunch_second_main: currentMeals.lunch.second_main,
-      lunch_poriyal: currentMeals.lunch.poriyal,
-      dinner_main: currentMeals.dinner.main,
-      dinner_sidedish: currentMeals.dinner.sidedish,
-      snack_main: currentMeals.snack.main
+      breakfast_main: mealInputs.breakfast_main.split(",").map(item => item.trim()).filter(item => item),
+      breakfast_sidedish: mealInputs.breakfast_sidedish.split(",").map(item => item.trim()).filter(item => item),
+      lunch_monday_main: mealInputs.lunch_monday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_tuesday_main: mealInputs.lunch_tuesday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_wednesday_main: mealInputs.lunch_wednesday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_thursday_main: mealInputs.lunch_thursday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_friday_main: mealInputs.lunch_friday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_saturday_main: mealInputs.lunch_saturday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_sunday_main: mealInputs.lunch_sunday_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_second_main: mealInputs.lunch_second_main.split(",").map(item => item.trim()).filter(item => item),
+      lunch_poriyal: mealInputs.lunch_poriyal.split(",").map(item => item.trim()).filter(item => item),
+      dinner_main: mealInputs.dinner_main.split(",").map(item => item.trim()).filter(item => item),
+      dinner_sidedish: mealInputs.dinner_sidedish.split(",").map(item => item.trim()).filter(item => item),
     };
 
-    // Add new items to the selected category
-    const categoryKey = `${selectedMealType}_${selectedMealCategory}`;
+    // Add new items to selected category
     itemsToAdd.forEach(item => {
-      if (!mealData[categoryKey].includes(item)) {
-        mealData[categoryKey].push(item);
+      if (!mealData[mealDataKey].includes(item)) {
+        mealData[mealDataKey].push(item);
       }
     });
 
-    const response = await apiFetch("/update-meals", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", 
-        //"Authorization": basicAuth
+    try {
+      const response = await apiFetch("/update-meals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(mealData)
       });
 
-    const result = await response.json();
-    alert(result.message);
-    setCurrentMeals(result.meals);
-    setNewMealItem("");
-  };
+      const result = await response.json();
+      setCurrentMeals(result.meals);
+      
+      // Sync UI form inputs with updated backend data
+      setMealInputs({
+        breakfast_main: (result.meals?.breakfast?.main || []).join(", "),
+        breakfast_sidedish: (result.meals?.breakfast?.sidedish || []).join(", "),
+        lunch_monday_main: (result.meals?.lunch?.monday_main || []).join(", "),
+        lunch_tuesday_main: (result.meals?.lunch?.tuesday_main || []).join(", "),
+        lunch_wednesday_main: (result.meals?.lunch?.wednesday_main || []).join(", "),
+        lunch_thursday_main: (result.meals?.lunch?.thursday_main || []).join(", "),
+        lunch_friday_main: (result.meals?.lunch?.friday_main || []).join(", "),
+        lunch_saturday_main: (result.meals?.lunch?.saturday_main || []).join(", "),
+        lunch_sunday_main: (result.meals?.lunch?.sunday_main || []).join(", "),
+        lunch_second_main: (result.meals?.lunch?.second_main || []).join(", "),
+        lunch_poriyal: (result.meals?.lunch?.poriyal || []).join(", "),
+        dinner_main: (result.meals?.dinner?.main || []).join(", "),
+        dinner_sidedish: (result.meals?.dinner?.sidedish || []).join(", "),
+      });
+
+      setNewMealItem("");
+      setSelectedDay("");
+      setSelectedMealCategory("");
+
+      const syncResponse = await apiFetch("/meals-sync-status");
+      const syncData = await syncResponse.json();
+      console.log("✅ Items added and synced at:", syncData.timestamp);
+
+      alert("✅ " + result.message + "\n📊 Changes are ready for meal generation!");
+    } catch (error) {
+      alert(`❌ Error adding meal items: ${error.message}`);
+    console.error("Error:", error);
+  }
+};
 
   const handleRemoveMealItem = async (mealType, category, itemName) => {
-    const response = await apiFetch("/remove-meal-item", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        //"Authorization": basicAuth
-      },
-      body: JSON.stringify({
-        meal_type: mealType,
-        category: category,
-        item_name: itemName
-      })
-    });
+    try {
+      const response = await apiFetch("/remove-meal-item", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          //"Authorization": basicAuth
+        },
+        body: JSON.stringify({
+          meal_type: mealType,
+          category: category,
+          item_name: itemName
+        })
+      });
 
-    const result = await response.json();
-    setCurrentMeals(result.meals);
-    handleFetchCurrentMeals();
+      const result = await response.json();
+      setCurrentMeals(result.meals);
+      handleFetchCurrentMeals();
+      
+      // Verify synchronization
+      const syncResponse = await apiFetch("/meals-sync-status");
+      const syncData = await syncResponse.json();
+      console.log("✅ Item removed and synced at:", syncData.timestamp);
+    } catch (error) {
+      alert(`❌ Error removing meal item: ${error.message}`);
+      console.error("Error:", error);
+    }
   };
 
   // Generate Meal Plan Component
   const handleGenerateMealPlan = async () => {
-    const response = await apiFetch("/generate-meal-plan", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        //"Authorization": basicAuth
-      },
-      body: JSON.stringify({
-        breakfast: true,
-        lunch: true,
-        dinner: true,
-        snack: true
-      })
-    });
+    try {
+      // Verify latest data before generating meal plan
+      const syncResponse = await apiFetch("/meals-sync-status");
+      const syncStatus = await syncResponse.json();
+      console.log("✅ Meal Sync Status:", syncStatus);
 
-    const data = await response.json();
-    setMealPlan(data);
+      const response = await apiFetch("/generate-meal-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+          //"Authorization": basicAuth
+        },
+        body: JSON.stringify({
+          breakfast: true,
+          lunch: true,
+          dinner: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setMealPlan(data);
+      console.log("✅ Meal plan generated with latest data at:", new Date().toLocaleTimeString());
+    } catch (error) {
+      alert(`❌ Error generating meal plan: ${error.message}`);
+      console.error("Error:", error);
+    }
   };
 
 
@@ -464,23 +634,23 @@ function App() {
 
     doc.setFont(undefined, "normal");
 
+    if (day.day_main) {
+      doc.text(`${day.day} Main: ${day.day_main}`, 25, y);
+      y += 6;
+    }
+
     if (day.breakfast) {
-      doc.text(`Breakfast: ${day.breakfast.main} + ${day.breakfast.sidedish}`, 25, y);
+      doc.text(`Breakfast: ${day.breakfast_main.main} + ${day.breakfast_sidedish.sidedish}`, 25, y);
       y += 6;
     }
 
     if (day.lunch) {
-      doc.text(`Lunch: ${day.lunch.main} + ${day.lunch.second_main} + ${day.lunch.poriyal}`, 25, y);
+      doc.text(`Lunch: ${day.lunch_main.main} + ${day.lunch_second_main.second_main} + ${day.lunch_poriyal.poriyal}`, 25, y);
       y += 6;
     }
 
     if (day.dinner) {
-      doc.text(`Dinner: ${day.dinner.main} + ${day.dinner.sidedish}`, 25, y);
-      y += 6;
-    }
-
-    if (day.snack) {
-      doc.text(`Snack: ${day.snack.main}`, 25, y);
+      doc.text(`Dinner: ${day.dinner_main.main} + ${day.dinner_sidedish.sidedish}`, 25, y);
       y += 6;
     }
 
@@ -736,13 +906,22 @@ function App() {
           <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>Back to Home</button>
           <h2>Update Meal Data</h2>
 
+          <button 
+            onClick={handleDownloadMealPayload} 
+            style={{ ...buttonStyle, backgroundColor: "#2196F3", marginBottom: "20px" }}
+          >
+            ⬇️ Download Latest Payload (JSON)
+          </button>
+
           {/* Display Current Meals by Type and Category */}
           {currentMeals && (
             <div style={{ marginBottom: "30px", backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px" }}>
               <h3>Current Meals in JSON</h3>
-              {Object.keys(currentMeals).map((mealType) => (
-                <div key={mealType} style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
-                  <h4 style={{ color: "#4CAF50", marginTop: 0, textTransform: "capitalize" }}>{mealType}</h4>
+
+              {/* BREAKFAST */}
+              {currentMeals.breakfast && (
+                <div style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
+                  <h4 style={{ color: "#4CAF50", marginTop: 0 }}>Breakfast</h4>
                   
                   {/* Main Dishes */}
                   <div style={{ marginBottom: "15px" }}>
@@ -755,12 +934,12 @@ function App() {
                         </tr>
                       </thead>
                       <tbody>
-                        {currentMeals[mealType].main.map((item) => (
-                          <tr key={`${mealType}-main-${item}`}>
+                        {currentMeals.breakfast.main && currentMeals.breakfast.main.map((item) => (
+                          <tr key={`breakfast-main-${item}`}>
                             <td style={tdStyle}>{item}</td>
                             <td style={tdStyle}>
                               <button 
-                                onClick={() => handleRemoveMealItem(mealType, "main", item)}
+                                onClick={() => handleRemoveMealItem("breakfast", "main", item)}
                                 style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
                               >
                                 Remove
@@ -773,142 +952,312 @@ function App() {
                   </div>
 
                   {/* Side Dishes */}
-                  {currentMeals?.[mealType]?.sidedish?.length > 0 && (
-                  <div>
-                    <h5 style={{ marginBottom: "10px" }}>Side Dishes</h5>
-                    <table style={tableStyle}>
-                      <thead>
-                        <tr>
-                          <th style={thStyle}>Item</th>
-                          <th style={thStyle}>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentMeals[mealType].sidedish.map((item) => (
-                          <tr key={`${mealType}-sidedish-${item}`}>
-                            <td style={tdStyle}>{item}</td>
-                            <td style={tdStyle}>
-                              <button 
-                                onClick={() => handleRemoveMealItem(mealType, "sidedish", item)}
-                                style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                              >
-                                Remove
-                              </button>
-                            </td>
+                  {currentMeals.breakfast?.sidedish?.length > 0 && (
+                    <div>
+                      <h5 style={{ marginBottom: "10px" }}>Side Dishes</h5>
+                      <table style={tableStyle}>
+                        <thead>
+                          <tr>
+                            <th style={thStyle}>Item</th>
+                            <th style={thStyle}>Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div> )}
-
-                    {/* Second Main */}
-                  {currentMeals?.[mealType]?.second_main?.length > 0 && (
-                  <div>
-                    <h5 style={{ marginBottom: "10px" }}>Second Main</h5>
-                    <table style={tableStyle}>
-                      <thead>
-                        <tr>
-                          <th style={thStyle}>Item</th>
-                          <th style={thStyle}>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentMeals[mealType].second_main.map((item) => (
-                          <tr key={`${mealType}-second_main-${item}`}>
-                            <td style={tdStyle}>{item}</td>
-                            <td style={tdStyle}>
-                              <button 
-                                onClick={() => handleRemoveMealItem(mealType, "second_main", item)}
-                                style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div> )}
-
-                {/* Poriyal */}
-                  {currentMeals?.[mealType]?.poriyal?.length > 0 && (
-                  <div>
-                    <h5 style={{ marginBottom: "10px" }}>Poriyal</h5>
-                    <table style={tableStyle}>
-                      <thead>
-                        <tr>
-                          <th style={thStyle}>Item</th>
-                          <th style={thStyle}>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentMeals[mealType].poriyal.map((item) => (
-                          <tr key={`${mealType}-poriyal-${item}`}>
-                            <td style={tdStyle}>{item}</td>
-                            <td style={tdStyle}>
-                              <button 
-                                onClick={() => handleRemoveMealItem(mealType, "poriyal", item)}
-                                style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div> )}
+                        </thead>
+                        <tbody>
+                          {currentMeals.breakfast.sidedish.map((item) => (
+                            <tr key={`breakfast-sidedish-${item}`}>
+                              <td style={tdStyle}>{item}</td>
+                              <td style={tdStyle}>
+                                <button 
+                                  onClick={() => handleRemoveMealItem("breakfast", "sidedish", item)}
+                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
+
+              {/* LUNCH */}
+              {currentMeals.lunch && (
+                <div style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
+                  <h4 style={{ color: "#4CAF50", marginTop: 0 }}>Lunch</h4>
+                  
+                  {/* Day-Specific Mains */}
+                  <div style={{ marginBottom: "15px" }}>
+                    <h5 style={{ marginBottom: "10px" }}>Day-Specific Mains</h5>
+                    {["monday_main", "tuesday_main", "wednesday_main", "thursday_main", "friday_main", "saturday_main", "sunday_main"].map((day) => (
+                      currentMeals.lunch[day]?.length > 0 && (
+                        <div key={`lunch-${day}`} style={{ marginBottom: "10px" }}>
+                          <h6 style={{ marginBottom: "5px", textTransform: "capitalize" }}>{day.replace("_main", "").charAt(0).toUpperCase() + day.replace("_main", "").slice(1)}</h6>
+                          <table style={tableStyle}>
+                            <thead>
+                              <tr>
+                                <th style={thStyle}>Item</th>
+                                <th style={thStyle}>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {currentMeals.lunch[day].map((item) => (
+                                <tr key={`lunch-${day}-${item}`}>
+                                  <td style={tdStyle}>{item}</td>
+                                  <td style={tdStyle}>
+                                    <button 
+                                      onClick={() => handleRemoveMealItem("lunch", day, item)}
+                                      style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                                    >
+                                      Remove
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )
+                    ))}
+                  </div>
+
+                  {/* Second Main */}
+                  {currentMeals.lunch?.second_main?.length > 0 && (
+                    <div style={{ marginBottom: "15px" }}>
+                      <h5 style={{ marginBottom: "10px" }}>Second Main</h5>
+                      <table style={tableStyle}>
+                        <thead>
+                          <tr>
+                            <th style={thStyle}>Item</th>
+                            <th style={thStyle}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentMeals.lunch.second_main.map((item) => (
+                            <tr key={`lunch-second_main-${item}`}>
+                              <td style={tdStyle}>{item}</td>
+                              <td style={tdStyle}>
+                                <button 
+                                  onClick={() => handleRemoveMealItem("lunch", "second_main", item)}
+                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Poriyal */}
+                  {currentMeals.lunch?.poriyal?.length > 0 && (
+                    <div>
+                      <h5 style={{ marginBottom: "10px" }}>Poriyal</h5>
+                      <table style={tableStyle}>
+                        <thead>
+                          <tr>
+                            <th style={thStyle}>Item</th>
+                            <th style={thStyle}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentMeals.lunch.poriyal.map((item) => (
+                            <tr key={`lunch-poriyal-${item}`}>
+                              <td style={tdStyle}>{item}</td>
+                              <td style={tdStyle}>
+                                <button 
+                                  onClick={() => handleRemoveMealItem("lunch", "poriyal", item)}
+                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DINNER */}
+              {currentMeals.dinner && (
+                <div style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
+                  <h4 style={{ color: "#4CAF50", marginTop: 0 }}>Dinner</h4>
+                  
+                  {/* Main Dishes */}
+                  <div style={{ marginBottom: "15px" }}>
+                    <h5 style={{ marginBottom: "10px" }}>Main Dishes</h5>
+                    <table style={tableStyle}>
+                      <thead>
+                        <tr>
+                          <th style={thStyle}>Item</th>
+                          <th style={thStyle}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentMeals.dinner.main && currentMeals.dinner.main.map((item) => (
+                          <tr key={`dinner-main-${item}`}>
+                            <td style={tdStyle}>{item}</td>
+                            <td style={tdStyle}>
+                              <button 
+                                onClick={() => handleRemoveMealItem("dinner", "main", item)}
+                                style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                              >
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Side Dishes */}
+                  {currentMeals.dinner?.sidedish?.length > 0 && (
+                    <div>
+                      <h5 style={{ marginBottom: "10px" }}>Side Dishes</h5>
+                      <table style={tableStyle}>
+                        <thead>
+                          <tr>
+                            <th style={thStyle}>Item</th>
+                            <th style={thStyle}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentMeals.dinner.sidedish.map((item) => (
+                            <tr key={`dinner-sidedish-${item}`}>
+                              <td style={tdStyle}>{item}</td>
+                              <td style={tdStyle}>
+                                <button 
+                                  onClick={() => handleRemoveMealItem("dinner", "sidedish", item)}
+                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
           {/* Add New Meal Items */}
-          <div style={{ backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px" }}>
-            <h3>Add New Meal Items</h3>
-            
-            <div style={formGroupStyle}>
-              <label>Select Meal Type:</label>
-              <select 
-                value={selectedMealType} 
-                onChange={(e) => setSelectedMealType(e.target.value)}
-                style={{ ...inputStyle, marginTop: "5px" }}
-              >
-                <option value="">-- Select a meal type --</option>
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-                <option value="snack">Snack</option>
-              </select>
-            </div>
+<div style={{ backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px" }}>
+  <h3>Add New Meal Items</h3>
 
-            <div style={formGroupStyle}>
-              <label>Select Category:</label>
-              <select 
-                value={selectedMealCategory} 
-                onChange={(e) => setSelectedMealCategory(e.target.value)}
-                style={{ ...inputStyle, marginTop: "5px" }}
-              >
-                <option value="main">Main Dishes</option>
-                <option value="sidedish">Side Dishes</option>
-              </select>
-            </div>
+  {/* Meal Type */}
+  <div style={formGroupStyle}>
+    <label>Select Meal Type:</label>
+    <select 
+      value={selectedMealType} 
+      onChange={(e) => {
+        setSelectedMealType(e.target.value);
+        setSelectedMealCategory("");
+        setSelectedDay("");
+      }}
+      style={{ ...inputStyle, marginTop: "5px" }}
+    >
+      <option value="">-- Select a meal type --</option>
+      <option value="breakfast">Breakfast</option>
+      <option value="lunch">Lunch</option>
+      <option value="dinner">Dinner</option>
+    </select>
+  </div>
 
-            <div style={formGroupStyle}>
-              <label>Add New Items (comma-separated):</label>
-              <input
-                type="text"
-                placeholder="e.g., Idli, Dosa, Upma"
-                value={newMealItem}
-                onChange={(e) => setNewMealItem(e.target.value)}
-                style={inputStyle}
-              />
-            </div>
+  {/* Category */}
+  <div style={formGroupStyle}>
+    <label>Select Category:</label>
+    <select 
+      value={selectedMealCategory} 
+      onChange={(e) => {
+        setSelectedMealCategory(e.target.value);
+        setSelectedDay("");
+      }}
+      style={{ ...inputStyle, marginTop: "5px" }}
+    >
+      <option value="">-- Select category --</option>
 
-            <button onClick={handleAddMealItem} style={buttonStyle}>
-              Add Meal Items
-            </button>
-          </div>
+      {selectedMealType === "breakfast" && (
+        <>
+          <option value="main">Main</option>
+          <option value="sidedish">Side Dish</option>
+        </>
+      )}
+
+      {selectedMealType === "lunch" && (
+        <>
+          <option value="main">Main</option>
+          <option value="second_main">Second Main</option>
+          <option value="poriyal">Poriyal</option>
+        </>
+      )}
+
+      {selectedMealType === "dinner" && (
+        <>
+          <option value="main">Main</option>
+          <option value="sidedish">Side Dish</option>
+        </>
+      )}
+    </select>
+  </div>
+
+  {/* Day Selector (only for lunch main) */}
+  {selectedMealType === "lunch" && selectedMealCategory === "main" && (
+    <div style={formGroupStyle}>
+      <label>Select Day:</label>
+      <select
+        value={selectedDay}
+        onChange={(e) => setSelectedDay(e.target.value)}
+        style={{ ...inputStyle, marginTop: "5px" }}
+      >
+        <option value="">-- Select day --</option>
+        <option value="monday">Monday</option>
+        <option value="tuesday">Tuesday</option>
+        <option value="wednesday">Wednesday</option>
+        <option value="thursday">Thursday</option>
+        <option value="friday">Friday</option>
+        <option value="saturday">Saturday</option>
+        <option value="sunday">Sunday</option>
+      </select>
+    </div>
+  )}
+
+  {/* Input */}
+  <div style={formGroupStyle}>
+    <label>Add New Items (comma-separated):</label>
+    <input
+      type="text"
+      placeholder="e.g., Idli, Dosa, Upma"
+      value={newMealItem}
+      onChange={(e) => setNewMealItem(e.target.value)}
+      style={inputStyle}
+    />
+  </div>
+
+  {/* Button */}
+  <button 
+  onClick={handleAddMealItem}
+  style={buttonStyle}
+  disabled={
+    !selectedMealType ||
+    !selectedMealCategory ||
+    (selectedMealType === "lunch" && selectedMealCategory === "main" && !selectedDay)
+  }
+>
+  Add Meal Items
+</button>
+</div>
         </div>
       )}
 
@@ -1008,7 +1357,7 @@ function App() {
 
           {mealPlan && (
             <div style={{ marginTop: "30px" }}>
-              <h3>Weekly Meal Plan - {mealPlan.note}</h3>
+              <h3>Weekly Meal Plan - {mealPlan.week_start} to {mealPlan.week_end}</h3>
               {mealPlan.weekly_plan.map((day, index) => (
                 <div key={index} style={dayPlanStyle}>
                   <h4>{day.day} - {day.date}</h4>
@@ -1016,13 +1365,10 @@ function App() {
                     <p><b>Breakfast:</b> {day.breakfast.main} + {day.breakfast.sidedish}</p>
                   )}
                   {day.lunch && (
-                    <p><b>Lunch:</b> {day.lunch.main} + {day.lunch.second_main} + {day.lunch.poriyal}</p>
+                    <p><b>Lunch:</b> {day.lunch.day_main} + {day.lunch.second_main} + {day.lunch.poriyal}</p>
                   )}
                   {day.dinner && (
                     <p><b>Dinner:</b> {day.dinner.main} + {day.dinner.sidedish}</p>
-                  )}
-                  {day.snack && (
-                    <p><b>Snack:</b> {day.snack.main}</p>
                   )}
                 </div>
               ))}

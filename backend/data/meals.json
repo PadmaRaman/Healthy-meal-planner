@@ -1,130 +1,48 @@
 {
   "breakfast": {
     "main": [
-      "Idli",
-      "Dosa",
-      "Rava Upma",
-      "Semiya Upma",
-      "Kothumai Rava Upma",
-      "Ragi Dosa",
-      "Kambu Dosa",
-      "Kichadi",
-      "Pongal",
-      "Poha",
-      "Uthapam"
+      "Breakfast_main"
     ],
     "sidedish": [
       "Sambar",
-      "Pudhina Chutney",
-      "Onion Chutney",
-      "Cocunut Chutney",
-      "Bombay Chutney",
-      "Peanut Chutney",
-      "Tomato Chutney",
-      "Kathirikai Gothsu",
-      "Onion Gothsu",
-      "Tomato Gothsu",
-      "Kumbakonam Gothsu"
+      "Coconut Chutney"
     ]
   },
   "lunch": {
-    "main": [
-      "Murungakkai Sambar",
-      "Kathirikai Sambar",
-      "Mullangi Sambar",
-      "Vengaya Sambar",
-      "Poosanikai Sambar",
-      "Peerkangai Sambar",
-      "Vendakkai Sambar",
-      "Chow Chow Sambar",
-      "Capsicum Sambar",
-      "Paavakai Sambar",
-      "Mixed Vegetable Sambar",
-      "Moong Dal Sambar",
-      "Murungai Keerai Sambar",
-      "Arai Keerai Sambar",
-      "Mulai Keerai Sambar",
-      "Manathakali Keerai Sambar",
-      "Kollu Sambar",
-      "Ennai Kathirikai",
-      "Menthool Pulusu",
-      "White Poosinikai Mor kuzhambu",
-      "Vendakkai Mor kuzhambu",
-      "Pavakai Sambar"
+    "monday_main": [
+      "Monday_meal"
+    ],
+    "tuesday_main": [],
+    "wednesday_main": [
+      "wednesday_meal"
+    ],
+    "thursday_main": [
+      "Thursday_main"
+    ],
+    "friday_main": [],
+    "saturday_main": [
+      "Saturday_meal"
+    ],
+    "sunday_main": [
+      "Ghee Rice"
     ],
     "second_main": [
-      "Poondu Rasam",
-      "Rasam",
-      "Thipili Rasam",
-      "Mint Thogaiyal",
-      "Beerkangai Thogaiyal",
-      "Cocunut Thogaiyal",
-      "Kadala Paruppu Thogaiyal",
-      "Tomato Thogaiyal",
-      "Ginger Thogaiyal"
+      "Appalam",
+      "Papad"
     ],
     "poriyal": [
-      "Potato Poriyal",
-      "Cabbage Poriyal",
-      "Brinjal Poriyal",
-      "Beans Usili Poriyal",
-      "Beetroot Poriyal",
-      "Keerai Poriyal",
-      "Baby Potato Poriyal",
-      "Kothavarangai Poriyal",
-      "Kovakkai Poriyal",
-      "Avarakkai Poriyal",
-      "Vendakkai Poriyal",
-      "Vazhaithandu Poriyal",
-      "Vazhaipoo poriyal",
-      "Vazhakkai Poriyal",
-      "Beans Cocunut Poriyal",
-      "Carrot BEans Poriyal"
+      "Beans Poriyal",
+      "Carrot Poriyal"
     ]
   },
   "dinner": {
     "main": [
-      "Idli",
-      "Dosa",
-      "Rava Upma",
-      "Semiya Upma",
-      "Kothumai Rava Upma",
-      "Ragi Dosa",
-      "Kambu Dosa",
-      "Kichadi",
-      "Pongal",
-      "Poha",
-      "Uthapam"
+      "Chapati",
+      "Dosa"
     ],
     "sidedish": [
-      "Sambar",
-      "Pudhina Chutney",
-      "Onion Chutney",
-      "Cocunut Chutney",
-      "Bombay Chutney",
-      "Peanut Chutney",
-      "Tomato Chutney",
-      "Kathirikai Gothsu",
-      "Onion Gothsu",
-      "Tomato Gothsu",
-      "Kumbakonam Gothsu"
-    ]
-  },
-  "snack": {
-    "main": [
-      "PachaiPayiru Sundal",
-      "White ChickPeas Sundal",
-      "Black ChichPeas Sundal",
-      "White Karamani Sundal",
-      "Black Karamani Sundal",
-      "Pattani Sundal",
-      "Kollu Sundal",
-      "Makhana",
-      "Apple",
-      "Banana",
-      "Cauliflower Pakoda",
-      "Brocolli Pakoda",
-      "Onion Pakoda"
+      "Kurma",
+      "Chutney"
     ]
   }
 }

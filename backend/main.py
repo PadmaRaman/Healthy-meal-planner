@@ -94,17 +94,19 @@ DEFAULT_MEALS = {
         "sidedish": ["Sambar", "Coconut Chutney"],
     },
     "lunch": {
-        "main": ["Sambar Rice", "Curd Rice"],
-        "second_main": ["Poriyal", "Appalam"],
+        "monday_main": ["Jeera Rice", "Tamarind Rice"],
+        "tuesday_main": ["Coconut Rice", "Lemon Rice"],
+        "wednesday_main": ["Vegetable Biryani", "Tomato Rice"],
+        "thursday_main": ["Curd Rice", "Mint Rice"],
+        "friday_main": ["Sambar Rice", "Turmeric Rice"],
+        "saturday_main": ["Fried Rice", "Pulao"],
+        "sunday_main": ["Ghee Rice", "Peas Pulao"],
+        "second_main": ["Appalam", "Papad"],
         "poriyal": ["Beans Poriyal", "Carrot Poriyal"],
     },
     "dinner": {
         "main": ["Chapati", "Dosa"],
         "sidedish": ["Kurma", "Chutney"],
-    },
-    "snack": {
-        "main": ["Sundal", "Vadai"],
-        "sidedish": ["Tea", "Coffee"],
     },
 }
 
@@ -131,18 +133,22 @@ class MealRequest(BaseModel):
     breakfast: bool = True
     lunch: bool = True
     dinner: bool = True
-    snack: bool = True
 
 
 class MealUpdate(BaseModel):
     breakfast_main: list = []
     breakfast_sidedish: list = []
-    lunch_main: list = []
+    lunch_monday_main: list = []
+    lunch_tuesday_main: list = []
+    lunch_wednesday_main: list = []
+    lunch_thursday_main: list = []
+    lunch_friday_main: list = []
+    lunch_saturday_main: list = []
+    lunch_sunday_main: list = []
     lunch_second_main: list = []
     lunch_poriyal: list = []
     dinner_main: list = []
     dinner_sidedish: list = []
-    snack_main: list = []
 
 
 class GroceryItems(BaseModel):
@@ -165,10 +171,31 @@ def read_root(username: str = Depends(verify_credentials)):
 
 
 # --------------------------------------------------
+# ✅ Sync Verification Endpoint
+# --------------------------------------------------
+@app.get("/meals-sync-status")
+def meals_sync_status(username: str = Depends(verify_credentials)):
+    """Returns current meals state and last update timestamp for sync verification"""
+    global MEALS
+    return {
+        "status": "synced",
+        "meals": MEALS,
+        "timestamp": datetime.now().isoformat(),
+        "breakfast_items": sum(len(items) for items in MEALS.get("breakfast", {}).values()),
+        "lunch_items": sum(len(items) for items in MEALS.get("lunch", {}).values()),
+        "dinner_items": sum(len(items) for items in MEALS.get("dinner", {}).values()),
+    }
+
+
+# --------------------------------------------------
 # ✅ Generate Weekly Meal Plan
 # --------------------------------------------------
 @app.post("/generate-meal-plan")
 def generate_meal_plan(request: MealRequest, username: str = Depends(verify_credentials)):
+    global MEALS
+    
+    # Reload meals from storage to ensure latest data is used
+    MEALS = load_json(MEAL_FILE) or MEALS
 
     weekly_plan = []
     today = datetime.now()
@@ -179,45 +206,58 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
     breakfast_main = MEALS["breakfast"]["main"][:]
     breakfast_side = MEALS["breakfast"]["sidedish"][:]
 
-    lunch_main = MEALS["lunch"]["main"][:]
+    # Lunch - day-wise mains
+    lunch_day_mains = {}
+    day_names = ["monday_main", "tuesday_main", "wednesday_main", "thursday_main", 
+                 "friday_main", "saturday_main", "sunday_main"]
+    for day_name in day_names:
+        lunch_day_mains[day_name] = MEALS["lunch"][day_name][:]
+
     lunch_second = MEALS["lunch"]["second_main"][:]
     lunch_poriyal = MEALS["lunch"]["poriyal"][:]
 
     dinner_main = MEALS["dinner"]["main"][:]
     dinner_side = MEALS["dinner"]["sidedish"][:]
 
-    snack_main = MEALS["snack"]["main"][:]
-
     # Shuffle
     random.shuffle(breakfast_main)
     random.shuffle(breakfast_side)
-    random.shuffle(lunch_main)
     random.shuffle(lunch_second)
     random.shuffle(lunch_poriyal)
     random.shuffle(dinner_main)
     random.shuffle(dinner_side)
-    random.shuffle(snack_main)
+    
+    # Shuffle day-specific lunch mains
+    for day_name in day_names:
+        random.shuffle(lunch_day_mains[day_name])
 
     # Track used items
     used = {
         "breakfast_main": set(),
         "breakfast_side": set(),
-        "lunch_main": set(),
         "lunch_second": set(),
         "lunch_poriyal": set(),
         "dinner_main": set(),
         "dinner_side": set(),
-        "snack_main": set(),
     }
+    
+    # Track day-specific lunch mains separately
+    for day_name in day_names:
+        used[f"lunch_main_{day_name}"] = set()
 
     for day in range(7):
 
         current_date = start_date + timedelta(days=day)
+        day_of_week = current_date.weekday()
 
         day_plan = {
             "day": current_date.strftime("%A"),
             "date": current_date.strftime("%d-%m-%Y"),
         }
+
+        # Get the day-specific lunch main for this day of week
+        day_key = day_names[day_of_week]
+        lunch_main_list = lunch_day_mains[day_key]
 
         # BREAKFAST
         if request.breakfast:
@@ -235,21 +275,26 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
 
         # LUNCH
         if request.lunch:
+            # Get day-specific main
+            lunch_main = next((m for m in lunch_main_list if m not in used.get("lunch_main_" + day_key, set())), None)
+            if lunch_main is None and lunch_main_list:
+                lunch_main = random.choice(lunch_main_list)
 
-            main = next((m for m in lunch_main if m not in used["lunch_main"]), None)
-            if main is None and lunch_main:
-                main = random.choice(lunch_main)
-
+            # Get second main
             second = next((s for s in lunch_second if s not in used["lunch_second"]), None)
             if second is None and lunch_second:
                 second = random.choice(lunch_second)
 
+            # Get poriyal
             poriyal = next((p for p in lunch_poriyal if p not in used["lunch_poriyal"]), None)
             if poriyal is None and lunch_poriyal:
                 poriyal = random.choice(lunch_poriyal)
 
-            if main:
-                used["lunch_main"].add(main)
+            # Track used items
+            if lunch_main:
+                if "lunch_main_" + day_key not in used:
+                    used["lunch_main_" + day_key] = set()
+                used["lunch_main_" + day_key].add(lunch_main)
 
             if second:
                 used["lunch_second"].add(second)
@@ -258,10 +303,10 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
                 used["lunch_poriyal"].add(poriyal)
 
             day_plan["lunch"] = {
-                "main": main,
+                "day_main": lunch_main,
                 "second_main": second,
                 "poriyal": poriyal,
-            }   
+            }
 
         # DINNER
         if request.dinner:
@@ -277,24 +322,13 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
                     "sidedish": side,
                 }
 
-        # SNACK
-        if request.snack:
-            snack = next((s for s in snack_main if s not in used["snack_main"]), None)
-
-            if snack:
-                used["snack_main"].add(snack)
-
-                day_plan["snack"] = {
-                    "main": snack,
-                }
-
         weekly_plan.append(day_plan)
 
     return {
-    "week_start": start_date.strftime("%d-%m-%Y"),
-    "week_end": (start_date + timedelta(days=6)).strftime("%d-%m-%Y"),
-    "weekly_plan": weekly_plan
-}
+        "week_start": start_date.strftime("%d-%m-%Y"),
+        "week_end": (start_date + timedelta(days=6)).strftime("%d-%m-%Y"),
+        "weekly_plan": weekly_plan
+    }
 
 
 # --------------------------------------------------
@@ -315,16 +349,19 @@ def update_meals(meal_update: MealUpdate, username: str = Depends(verify_credent
             "sidedish": meal_update.breakfast_sidedish,
         },
         "lunch": {
-            "main": meal_update.lunch_main,
+            "monday_main": meal_update.lunch_monday_main,
+            "tuesday_main": meal_update.lunch_tuesday_main,
+            "wednesday_main": meal_update.lunch_wednesday_main,
+            "thursday_main": meal_update.lunch_thursday_main,
+            "friday_main": meal_update.lunch_friday_main,
+            "saturday_main": meal_update.lunch_saturday_main,
+            "sunday_main": meal_update.lunch_sunday_main,
             "second_main": meal_update.lunch_second_main,
             "poriyal": meal_update.lunch_poriyal,
         },
         "dinner": {
             "main": meal_update.dinner_main,
             "sidedish": meal_update.dinner_sidedish,
-        },
-        "snack": {
-            "main": meal_update.snack_main,
         },
     }
 

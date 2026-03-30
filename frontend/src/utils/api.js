@@ -4,6 +4,8 @@ const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
   "https://healthy-meal-planner-0s0b.onrender.com";
 
+  //const API_BASE_URL = "http://localhost:8000";
+
 export async function apiFetch(endpoint, options = {}) {
   const auth = getBasicAuth();
 
