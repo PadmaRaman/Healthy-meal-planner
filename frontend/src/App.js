@@ -765,6 +765,7 @@ const tableStyle = {
     boxSizing: "border-box"
   };
 
+  // eslint-disable-next-line no-unused-vars
   const dayPlanStyle = {
     backgroundColor: "#f9f9f9",
     padding: "15px",
