@@ -133,6 +133,7 @@ class MealRequest(BaseModel):
     breakfast: bool = True
     lunch: bool = True
     dinner: bool = True
+    snack: bool = True
 
 
 class MealUpdate(BaseModel):
@@ -149,6 +150,8 @@ class MealUpdate(BaseModel):
     lunch_poriyal: list = []
     dinner_main: list = []
     dinner_sidedish: list = []
+    snack_main: list = []
+    snack_sidedish: list = []
 
 
 class GroceryItems(BaseModel):
@@ -219,6 +222,9 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
     dinner_main = MEALS["dinner"]["main"][:]
     dinner_side = MEALS["dinner"]["sidedish"][:]
 
+    snack_main = MEALS.get("snack", {}).get("main", [])[:] if MEALS.get("snack") else []
+    snack_side = MEALS.get("snack", {}).get("sidedish", [])[:] if MEALS.get("snack") else []
+
     # Shuffle
     random.shuffle(breakfast_main)
     random.shuffle(breakfast_side)
@@ -226,6 +232,10 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
     random.shuffle(lunch_poriyal)
     random.shuffle(dinner_main)
     random.shuffle(dinner_side)
+    if snack_main:
+        random.shuffle(snack_main)
+    if snack_side:
+        random.shuffle(snack_side)
     
     # Shuffle day-specific lunch mains
     for day_name in day_names:
@@ -239,6 +249,8 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
         "lunch_poriyal": set(),
         "dinner_main": set(),
         "dinner_side": set(),
+        "snack_main": set(),
+        "snack_side": set(),
     }
     
     # Track day-specific lunch mains separately
@@ -322,6 +334,22 @@ def generate_meal_plan(request: MealRequest, username: str = Depends(verify_cred
                     "sidedish": side,
                 }
 
+        # SNACK
+        if request.snack:
+            main = next((m for m in snack_main if m not in used["snack_main"]), None) if snack_main else None
+            side = next((s for s in snack_side if s not in used["snack_side"]), None) if snack_side else None
+
+            if main or side:
+                if main:
+                    used["snack_main"].add(main)
+                if side:
+                    used["snack_side"].add(side)
+
+                day_plan["snack"] = {
+                    "main": main or "",
+                    "sidedish": side or "",
+                }
+
         weekly_plan.append(day_plan)
 
     return {
@@ -362,6 +390,10 @@ def update_meals(meal_update: MealUpdate, username: str = Depends(verify_credent
         "dinner": {
             "main": meal_update.dinner_main,
             "sidedish": meal_update.dinner_sidedish,
+        },
+        "snack": {
+            "main": meal_update.snack_main,
+            "sidedish": meal_update.snack_sidedish,
         },
     }
 

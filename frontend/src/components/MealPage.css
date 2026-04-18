@@ -1,0 +1,351 @@
+/* Meal Page Container */
+.meal-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Back Button */
+.back-button {
+  padding: 10px 20px;
+  fontSize: 14px;
+  backgroundColor: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.back-button:hover {
+  background-color: #0b7dda;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Page Header */
+.meal-page-header {
+  text-align: center;
+  margin-bottom: 50px;
+  padding: 30px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.meal-page-header h1 {
+  font-size: 48px;
+  color: #2d3436;
+  margin: 0;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.header-subtitle {
+  font-size: 18px;
+  color: #636e72;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Download Section */
+.download-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.download-btn {
+  padding: 15px 40px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  font-weight: 600;
+}
+
+.download-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* Meal Cards */
+.meal-card {
+  margin-bottom: 50px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.meal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+}
+
+/* Meal Background with Image */
+.meal-background {
+  position: relative;
+  height: 300px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.meal-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+
+/* Enhanced Overlay */
+.meal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  z-index: 2;
+}
+
+/* Meal Content on Background */
+.meal-content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  color: white;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.meal-content h2 {
+  font-size: 42px;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.meal-type-description {
+  font-size: 16px;
+  margin-top: 10px;
+  opacity: 0.95;
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+/* Meal Details Section */
+.meal-details {
+  padding: 30px;
+  background: white;
+}
+
+.meal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.meal-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+  border-left: 5px solid;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.meal-item:hover {
+  transform: translateX(5px);
+  background: linear-gradient(135deg, #e8eaed 0%, #d8dce0 100%);
+}
+
+.breakfast-card .meal-item {
+  border-left-color: #FF8C42;
+}
+
+.breakfast-card .meal-background {
+  background-image: linear-gradient(135deg, rgba(255, 140, 66, 0.3) 0%, rgba(255, 165, 0, 0.2) 100%), url('https://images.unsplash.com/photo-1588000310519-40419e37fe51?w=800&q=80');
+}
+
+.lunch-card .meal-item {
+  border-left-color: #4CAF50;
+}
+
+.lunch-card .meal-background {
+  background-image: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(139, 195, 74, 0.2) 100%), url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80');
+}
+
+.dinner-card .meal-item {
+  border-left-color: #2196F3;
+}
+
+.dinner-card .meal-background {
+  background-image: linear-gradient(135deg, rgba(33, 150, 243, 0.3) 0%, rgba(63, 81, 181, 0.2) 100%), url('https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=800&q=80');
+}
+
+.snack-card .meal-item {
+  border-left-color: #E91E63;
+}
+
+.snack-card .meal-background {
+  background-image: linear-gradient(135deg, rgba(233, 30, 99, 0.3) 0%, rgba(156, 39, 176, 0.2) 100%), url('https://images.unsplash.com/photo-1599599810694-b5ac4dd19453?w=800&q=80');
+}
+
+/* Day Label */
+.day-label {
+  font-weight: 700;
+  color: #2d3436;
+  min-width: 120px;
+  font-size: 14px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Meal Text */
+.meal-text {
+  flex: 1;
+  color: #534e4e;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-left: 15px;
+  word-break: break-word;
+}
+
+/* Weekly Summary */
+.weekly-summary {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.weekly-summary h3 {
+  font-size: 28px;
+  color: #2d3436;
+  margin: 0 0 15px 0;
+}
+
+.week-range {
+  font-size: 16px;
+  color: #636e72;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* No Data Message */
+.no-data-message {
+  text-align: center;
+  padding: 50px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.no-data-message p {
+  font-size: 18px;
+  color: #636e72;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .meal-page-container {
+    padding: 15px;
+  }
+
+  .meal-page-header h1 {
+    font-size: 32px;
+  }
+
+  .header-subtitle {
+    font-size: 16px;
+  }
+
+  .meal-background {
+    height: 250px;
+  }
+
+  .meal-content h2 {
+    font-size: 32px;
+  }
+
+  .meal-type-description {
+    font-size: 14px;
+  }
+
+  .meal-details {
+    padding: 20px;
+  }
+
+  .meal-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .day-label {
+    margin-bottom: 8px;
+  }
+
+  .meal-text {
+    margin-left: 0;
+  }
+
+  .download-btn {
+    padding: 12px 30px;
+    font-size: 14px;
+  }
+
+  .weekly-summary h3 {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .meal-background {
+    height: 200px;
+  }
+
+  .meal-content h2 {
+    font-size: 24px;
+  }
+
+  .meal-type-description {
+    font-size: 12px;
+  }
+
+  .meal-page-header {
+    padding: 20px;
+  }
+
+  .meal-item {
+    padding: 10px 12px;
+  }
+}

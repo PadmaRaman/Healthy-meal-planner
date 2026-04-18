@@ -36,3 +36,123 @@
     transform: rotate(360deg);
   }
 }
+
+/* Enhanced Button Styles */
+.btn-primary, .btn-warning, .btn-success {
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover, .btn-warning:hover, .btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-danger {
+  background-color: #f44336;
+}
+
+.btn-danger:hover {
+  background-color: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+/* Navbar Enhancement */
+.navbar {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%) !important;
+}
+
+/* Card Styling */
+.card {
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Table Enhancements */
+table {
+  transition: all 0.3s ease;
+}
+
+tbody tr:hover {
+  background-color: #f0f0f0;
+  transition: background-color 0.2s ease;
+}
+
+/* Container Styling */
+.container-fluid {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 10%);
+}
+
+/* Button Group Styling */
+.row.g-3 {
+  margin-bottom: 20px;
+}
+
+/* Success Message */
+.alert-success {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Error Message */
+.alert-danger {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+/* Smooth transitions for all elements */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button {
+  transition: all 0.3s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Input focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #4CAF50 !important;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1) !important;
+}
+
+/* Form control styling */
+.form-control {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+/* Section Headers */
+h1, h2, h3, h4, h5, h6 {
+  color: #2d3436;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .btn-primary, .btn-warning, .btn-success, .btn-danger {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+}

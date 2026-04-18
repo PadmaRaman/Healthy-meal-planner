@@ -5,6 +5,8 @@ import jsPDF from "jspdf";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { setBasicAuth, isLoggedIn, clearBasicAuth } from "./utils/auth";
 import { apiFetch } from "./utils/api";
+import MealPage from "./components/MealPage";
+import "./styles/MealsManagement.css";
 
 // eslint-disable-next-line no-unused-vars
 const API_BASE_URL = "http://localhost:8000";
@@ -48,6 +50,8 @@ function App() {
     lunch_poriyal: "",
     dinner_main: "",
     dinner_sidedish: "",
+    snack_main: "",
+    snack_sidedish: "",
   });
 
   const handleLogin = async () => {
@@ -407,6 +411,18 @@ function App() {
         }
       });
     const data = await response.json();
+    
+    // Ensure snack object always exists with proper structure
+    if (!data.meals?.snack) {
+      data.meals = {
+        ...data.meals,
+        snack: {
+          main: [],
+          sidedish: []
+        }
+      };
+    }
+    
     setCurrentMeals(data.meals);
     // Pre-populate the input fields with current data
     setMealInputs({
@@ -423,6 +439,8 @@ function App() {
       lunch_poriyal: (data.meals?.lunch?.poriyal || []).join(", "),
       dinner_main: (data.meals?.dinner?.main || []).join(", "),
       dinner_sidedish: (data.meals?.dinner?.sidedish || []).join(", "),
+      snack_main: (data.meals?.snack?.main || []).join(", "),
+      snack_sidedish: (data.meals?.snack?.sidedish || []).join(", "),
     });
   };
 
@@ -464,6 +482,9 @@ function App() {
     else if (selectedMealType === "dinner") {
       mealDataKey = `dinner_${selectedMealCategory}`;
     }
+    else if (selectedMealType === "snack") {
+      mealDataKey = `snack_${selectedMealCategory}`;
+    }
 
     // Build mealData from form inputs (preserves any edits user made)
     const mealData = {
@@ -480,6 +501,8 @@ function App() {
       lunch_poriyal: mealInputs.lunch_poriyal.split(",").map(item => item.trim()).filter(item => item),
       dinner_main: mealInputs.dinner_main.split(",").map(item => item.trim()).filter(item => item),
       dinner_sidedish: mealInputs.dinner_sidedish.split(",").map(item => item.trim()).filter(item => item),
+      snack_main: mealInputs.snack_main.split(",").map(item => item.trim()).filter(item => item),
+      snack_sidedish: mealInputs.snack_sidedish.split(",").map(item => item.trim()).filter(item => item),
     };
 
     // Add new items to selected category
@@ -499,6 +522,18 @@ function App() {
       });
 
       const result = await response.json();
+      
+      // Ensure snack object exists in result
+      if (!result.meals?.snack) {
+        result.meals = {
+          ...result.meals,
+          snack: {
+            main: [],
+            sidedish: []
+          }
+        };
+      }
+      
       setCurrentMeals(result.meals);
       
       // Sync UI form inputs with updated backend data
@@ -516,6 +551,8 @@ function App() {
         lunch_poriyal: (result.meals?.lunch?.poriyal || []).join(", "),
         dinner_main: (result.meals?.dinner?.main || []).join(", "),
         dinner_sidedish: (result.meals?.dinner?.sidedish || []).join(", "),
+        snack_main: (result.meals?.snack?.main || []).join(", "),
+        snack_sidedish: (result.meals?.snack?.sidedish || []).join(", "),
       });
 
       setNewMealItem("");
@@ -580,7 +617,8 @@ function App() {
         body: JSON.stringify({
           breakfast: true,
           lunch: true,
-          dinner: true
+          dinner: true,
+          snack: true
         })
       });
 
@@ -639,18 +677,22 @@ function App() {
       y += 6;
     }
 
-    if (day.breakfast) {
-      doc.text(`Breakfast: ${day.breakfast_main.main} + ${day.breakfast_sidedish.sidedish}`, 25, y);
+    if (day.breakfast && day.breakfast.main) {
+      const breakfastSidedish = day.breakfast.sidedish || "";
+      doc.text(`Breakfast: ${day.breakfast.main} + ${breakfastSidedish}`, 25, y);
       y += 6;
     }
 
-    if (day.lunch) {
-      doc.text(`Lunch: ${day.lunch_main.main} + ${day.lunch_second_main.second_main} + ${day.lunch_poriyal.poriyal}`, 25, y);
+    if (day.lunch && day.lunch.day_main) {
+      const lunchSecond = day.lunch.second_main || "";
+      const lunchPoriyal = day.lunch.poriyal || "";
+      doc.text(`Lunch: ${day.lunch.day_main} + ${lunchSecond} + ${lunchPoriyal}`, 25, y);
       y += 6;
     }
 
-    if (day.dinner) {
-      doc.text(`Dinner: ${day.dinner_main.main} + ${day.dinner_sidedish.sidedish}`, 25, y);
+    if (day.dinner && day.dinner.main) {
+      const dinnerSidedish = day.dinner.sidedish || "";
+      doc.text(`Dinner: ${day.dinner.main} + ${dinnerSidedish}`, 25, y);
       y += 6;
     }
 
@@ -688,18 +730,18 @@ function App() {
     marginBottom: "20px"
   };
 
-  const tableStyle = {
-    borderCollapse: "collapse",
-    width: "100%",
-    marginTop: "20px",
-    border: "1px solid #ddd"
-  };
+const tableStyle = {
+  borderCollapse: "collapse",
+  width: "50%",              // reduce width so centering is visible
+  margin: "20px auto",       // centers the table horizontally
+  border: "1px solid #ddd",
+};
 
   const thStyle = {
     backgroundColor: "#4CAF50",
     color: "white",
     padding: "12px",
-    textAlign: "left",
+    textAlign: "center",
     border: "1px solid #ddd"
   };
 
@@ -781,58 +823,91 @@ function App() {
       </nav>
     
       {currentPage === "home" && (
-        <div className="mt-4">
-
-          {/* Row 1 */}
-          <div className="row g-3 mb-2">
-            <div className="col-12 col-md-6">
-              <button
-                onClick={() => { setCurrentPage("updateGroceries"); handleFetchCurrentGroceries(); }}
-                className="btn btn-primary w-100 py-3"
-              >
-                Update Groceries
-              </button>
+        <div style={{ backgroundImage: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", minHeight: "90vh", padding: "40px 20px" }}>
+          <div className="container">
+            {/* Page Title */}
+            <div style={{ textAlign: "center", marginBottom: "50px", paddingTop: "20px" }}>
+              <h1 style={{ color: "white", fontSize: "48px", fontWeight: "bold", textShadow: "2px 2px 8px rgba(0,0,0,0.3)", marginBottom: "10px" }}>
+                🍽️ Healthy Meal Planner
+              </h1>
+              <p style={{ color: "rgba(255,255,255,0.9)", fontSize: "18px", fontStyle: "italic" }}>
+                Plan your meals, manage groceries, and stay healthy
+              </p>
             </div>
 
-            <div className="col-12 col-md-6">
-              <button
-                onClick={() => { setCurrentPage("groceries"); handleFetchGroceries(); }}
-                className="btn btn-primary w-100 py-3"
-              >
-                Generate Groceries
-              </button>
+            {/* Groceries Section */}
+            <div style={{ marginBottom: "40px", backgroundColor: "white", padding: "30px", borderRadius: "12px", boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+                <span style={{ fontSize: "32px", marginRight: "15px" }}>🛒</span>
+                <h2 style={{ margin: 0, color: "#2d3436", fontSize: "32px" }}>Groceries Management</h2>
+              </div>
+              <p style={{ color: "#636e72", fontSize: "16px", marginBottom: "20px" }}>
+                Manage your grocery list, select items, and generate shopping lists
+              </p>
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <button
+                    onClick={() => { setCurrentPage("updateGroceries"); handleFetchCurrentGroceries(); }}
+                    className="btn btn-primary w-100 py-3"
+                    style={{ fontSize: "16px", fontWeight: "600" }}
+                  >
+                    ✏️ Update Groceries
+                  </button>
+                </div>
+                <div className="col-12 col-md-6">
+                  <button
+                    onClick={() => { setCurrentPage("groceries"); handleFetchGroceries(); }}
+                    className="btn btn-success w-100 py-3"
+                    style={{ fontSize: "16px", fontWeight: "600" }}
+                  >
+                    📋 Generate Groceries
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Meals Section */}
+            <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "12px", boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}>
+                <span style={{ fontSize: "32px", marginRight: "15px" }}>🍴</span>
+                <h2 style={{ margin: 0, color: "#2d3436", fontSize: "32px" }}>Meal Planning</h2>
+              </div>
+              <p style={{ color: "#636e72", fontSize: "16px", marginBottom: "20px" }}>
+                Create, customize, and generate your weekly meal plans
+              </p>
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <button
+                    onClick={() => { setCurrentPage("inputJson"); handleFetchCurrentMeals(); }}
+                    className="btn btn-warning w-100 py-3"
+                    style={{ fontSize: "16px", fontWeight: "600" }}
+                  >
+                    ✏️ Update Meals
+                  </button>
+                </div>
+                <div className="col-12 col-md-6">
+                  <button
+                    onClick={() => setCurrentPage("mealPlan")}
+                    className="btn btn-danger w-100 py-3"
+                    style={{ fontSize: "16px", fontWeight: "600" }}
+                  >
+                    📅 Generate Meals
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Row 2 */}
-          <div className="row g-3">
-            <div className="col-12 col-md-6">
-              <button
-                onClick={() => { setCurrentPage("inputJson"); handleFetchCurrentMeals(); }}
-                className="btn btn-warning w-100 py-3"
-              >
-                Update Meals
-              </button>
-            </div>
-
-            <div className="col-12 col-md-6">
-              <button
-                onClick={() => setCurrentPage("mealPlan")}
-                className="btn btn-warning w-100 py-3"
-              >
-                Generate Meals
-              </button>
-            </div>
-          </div>
-
         </div>
       )}
 
       {/* Groceries List Page */}
       {currentPage === "groceries" && (
-        <div>
-          <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>Back to Home</button>
-          <h2>Groceries List</h2>
+        <div style={{ backgroundImage: "linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(139,195,74,0.1) 100%)", minHeight: "100vh", padding: "20px" }}>
+          <div className="container">
+            <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>← Back to Home</button>
+            <h2 style={{ color: "#2d3436", textShadow: "1px 1px 2px rgba(0,0,0,0.05)", marginBottom: "30px" }}>
+              🛒 Select Groceries to Buy
+            </h2>
           
           {Object.keys(groceryList).length === 0 ? (
             <p style={{ color: "#666", fontSize: "16px" }}>No groceries loaded. Please wait or refresh the page.</p>
@@ -897,14 +972,18 @@ function App() {
               </div>
             </div>
           )}
+          </div>
         </div>
       )}
 
       {/* Input JSON Data Page */}
       {currentPage === "inputJson" && (
-        <div>
-          <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>Back to Home</button>
-          <h2>Update Meal Data</h2>
+        <div style={{ backgroundImage: "linear-gradient(135deg, rgba(255,193,7,0.1) 0%, rgba(255,165,0,0.1) 100%)", minHeight: "100vh", padding: "20px" }}>
+          <div className="container">
+            <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>← Back to Home</button>
+            <h2 style={{ color: "#2d3436", textShadow: "1px 1px 2px rgba(0,0,0,0.05)", marginBottom: "30px" }}>
+              🍽️ Update Meal Data
+            </h2>
 
           <button 
             onClick={handleDownloadMealPayload} 
@@ -915,47 +994,19 @@ function App() {
 
           {/* Display Current Meals by Type and Category */}
           {currentMeals && (
-            <div style={{ marginBottom: "30px", backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px" }}>
+            <div style={{ marginBottom: "30px", backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px", textAlign: "center" }}>
               <h3>Current Meals in JSON</h3>
 
               {/* BREAKFAST */}
               {currentMeals.breakfast && (
-                <div style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
-                  <h4 style={{ color: "#4CAF50", marginTop: 0 }}>Breakfast</h4>
+                <div className="meal-section-breakfast" style={{ marginBottom: "20px" }}>
+                  <h4 className="meal-category-header" style={{ marginTop: 0, textAlign: "center"}}>☀️ Breakfast</h4>
                   
                   {/* Main Dishes */}
-                  <div style={{ marginBottom: "15px" }}>
-                    <h5 style={{ marginBottom: "10px" }}>Main Dishes</h5>
-                    <table style={tableStyle}>
-                      <thead>
-                        <tr>
-                          <th style={thStyle}>Item</th>
-                          <th style={thStyle}>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentMeals.breakfast.main && currentMeals.breakfast.main.map((item) => (
-                          <tr key={`breakfast-main-${item}`}>
-                            <td style={tdStyle}>{item}</td>
-                            <td style={tdStyle}>
-                              <button 
-                                onClick={() => handleRemoveMealItem("breakfast", "main", item)}
-                                style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Side Dishes */}
-                  {currentMeals.breakfast?.sidedish?.length > 0 && (
-                    <div>
-                      <h5 style={{ marginBottom: "10px" }}>Side Dishes</h5>
-                      <table style={tableStyle}>
+                  <div className="meals-display-container" style={{ marginBottom: "15px",  textAlign: "center" }}>
+                    <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Main Dishes</h5>
+                    <div className="meal-table-wrapper">
+                      <table className="meal-category-table">
                         <thead>
                           <tr>
                             <th style={thStyle}>Item</th>
@@ -963,13 +1014,13 @@ function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {currentMeals.breakfast.sidedish.map((item) => (
-                            <tr key={`breakfast-sidedish-${item}`}>
+                          {currentMeals.breakfast.main && currentMeals.breakfast.main.map((item) => (
+                            <tr key={`breakfast-main-${item}`}>
                               <td style={tdStyle}>{item}</td>
                               <td style={tdStyle}>
                                 <button 
-                                  onClick={() => handleRemoveMealItem("breakfast", "sidedish", item)}
-                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                                  className="meal-remove-btn"
+                                  onClick={() => handleRemoveMealItem("breakfast", "main", item)}
                                 >
                                   Remove
                                 </button>
@@ -978,6 +1029,38 @@ function App() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+
+                  {/* Side Dishes */}
+                  {currentMeals.breakfast?.sidedish?.length > 0 && (
+                    <div className="meals-display-container">
+                      <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Side Dishes</h5>
+                      <div className="meal-table-wrapper">
+                        <table className="meal-category-table">
+                          <thead>
+                            <tr>
+                              <th style={thStyle}>Item</th>
+                              <th style={thStyle}>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentMeals.breakfast.sidedish.map((item) => (
+                              <tr key={`breakfast-sidedish-${item}`}>
+                                <td style={tdStyle}>{item}</td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    className="meal-remove-btn"
+                                    onClick={() => handleRemoveMealItem("breakfast", "sidedish", item)}
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -985,39 +1068,41 @@ function App() {
 
               {/* LUNCH */}
               {currentMeals.lunch && (
-                <div style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
-                  <h4 style={{ color: "#4CAF50", marginTop: 0 }}>Lunch</h4>
+                <div className="meal-section-lunch" style={{ marginBottom: "20px" }}>
+                  <h4 className="meal-category-header" style={{ marginTop: 0 }}>🥗 Lunch</h4>
                   
                   {/* Day-Specific Mains */}
-                  <div style={{ marginBottom: "15px" }}>
-                    <h5 style={{ marginBottom: "10px" }}>Day-Specific Mains</h5>
+                  <div className="meals-display-container" style={{ marginBottom: "15px" }}>
+                    <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Day-Specific Mains</h5>
                     {["monday_main", "tuesday_main", "wednesday_main", "thursday_main", "friday_main", "saturday_main", "sunday_main"].map((day) => (
                       currentMeals.lunch[day]?.length > 0 && (
                         <div key={`lunch-${day}`} style={{ marginBottom: "10px" }}>
-                          <h6 style={{ marginBottom: "5px", textTransform: "capitalize" }}>{day.replace("_main", "").charAt(0).toUpperCase() + day.replace("_main", "").slice(1)}</h6>
-                          <table style={tableStyle}>
-                            <thead>
-                              <tr>
-                                <th style={thStyle}>Item</th>
-                                <th style={thStyle}>Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {currentMeals.lunch[day].map((item) => (
-                                <tr key={`lunch-${day}-${item}`}>
-                                  <td style={tdStyle}>{item}</td>
-                                  <td style={tdStyle}>
-                                    <button 
-                                      onClick={() => handleRemoveMealItem("lunch", day, item)}
-                                      style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                                    >
-                                      Remove
-                                    </button>
-                                  </td>
+                          <h6 className="day-category-label" style={{ marginBottom: "5px", textTransform: "capitalize" }}>{day.replace("_main", "").charAt(0).toUpperCase() + day.replace("_main", "").slice(1)}</h6>
+                          <div className="meal-table-wrapper">
+                            <table className="meal-category-table">
+                              <thead>
+                                <tr>
+                                  <th style={thStyle}>Item</th>
+                                  <th style={thStyle}>Action</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody>
+                                {currentMeals.lunch[day].map((item) => (
+                                  <tr key={`lunch-${day}-${item}`}>
+                                    <td style={tdStyle}>{item}</td>
+                                    <td style={tdStyle}>
+                                      <button 
+                                        className="meal-remove-btn"
+                                        onClick={() => handleRemoveMealItem("lunch", day, item)}
+                                      >
+                                        Remove
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       )
                     ))}
@@ -1025,61 +1110,65 @@ function App() {
 
                   {/* Second Main */}
                   {currentMeals.lunch?.second_main?.length > 0 && (
-                    <div style={{ marginBottom: "15px" }}>
-                      <h5 style={{ marginBottom: "10px" }}>Second Main</h5>
-                      <table style={tableStyle}>
-                        <thead>
-                          <tr>
-                            <th style={thStyle}>Item</th>
-                            <th style={thStyle}>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {currentMeals.lunch.second_main.map((item) => (
-                            <tr key={`lunch-second_main-${item}`}>
-                              <td style={tdStyle}>{item}</td>
-                              <td style={tdStyle}>
-                                <button 
-                                  onClick={() => handleRemoveMealItem("lunch", "second_main", item)}
-                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                                >
-                                  Remove
-                                </button>
-                              </td>
+                    <div className="meals-display-container" style={{ marginBottom: "15px" }}>
+                      <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Second Main</h5>
+                      <div className="meal-table-wrapper">
+                        <table className="meal-category-table">
+                          <thead>
+                            <tr>
+                              <th style={thStyle}>Item</th>
+                              <th style={thStyle}>Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {currentMeals.lunch.second_main.map((item) => (
+                              <tr key={`lunch-second_main-${item}`}>
+                                <td style={tdStyle}>{item}</td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    className="meal-remove-btn"
+                                    onClick={() => handleRemoveMealItem("lunch", "second_main", item)}
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
 
                   {/* Poriyal */}
                   {currentMeals.lunch?.poriyal?.length > 0 && (
-                    <div>
-                      <h5 style={{ marginBottom: "10px" }}>Poriyal</h5>
-                      <table style={tableStyle}>
-                        <thead>
-                          <tr>
-                            <th style={thStyle}>Item</th>
-                            <th style={thStyle}>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {currentMeals.lunch.poriyal.map((item) => (
-                            <tr key={`lunch-poriyal-${item}`}>
-                              <td style={tdStyle}>{item}</td>
-                              <td style={tdStyle}>
-                                <button 
-                                  onClick={() => handleRemoveMealItem("lunch", "poriyal", item)}
-                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                                >
-                                  Remove
-                                </button>
-                              </td>
+                    <div className="meals-display-container">
+                      <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Poriyal</h5>
+                      <div className="meal-table-wrapper">
+                        <table className="meal-category-table">
+                          <thead>
+                            <tr>
+                              <th style={thStyle}>Item</th>
+                              <th style={thStyle}>Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {currentMeals.lunch.poriyal.map((item) => (
+                              <tr key={`lunch-poriyal-${item}`}>
+                                <td style={tdStyle}>{item}</td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    className="meal-remove-btn"
+                                    onClick={() => handleRemoveMealItem("lunch", "poriyal", item)}
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1087,42 +1176,14 @@ function App() {
 
               {/* DINNER */}
               {currentMeals.dinner && (
-                <div style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
-                  <h4 style={{ color: "#4CAF50", marginTop: 0 }}>Dinner</h4>
+                <div className="meal-section-dinner" style={{ marginBottom: "20px" }}>
+                  <h4 className="meal-category-header" style={{ marginTop: 0 }}>🌙 Dinner</h4>
                   
                   {/* Main Dishes */}
-                  <div style={{ marginBottom: "15px" }}>
-                    <h5 style={{ marginBottom: "10px" }}>Main Dishes</h5>
-                    <table style={tableStyle}>
-                      <thead>
-                        <tr>
-                          <th style={thStyle}>Item</th>
-                          <th style={thStyle}>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentMeals.dinner.main && currentMeals.dinner.main.map((item) => (
-                          <tr key={`dinner-main-${item}`}>
-                            <td style={tdStyle}>{item}</td>
-                            <td style={tdStyle}>
-                              <button 
-                                onClick={() => handleRemoveMealItem("dinner", "main", item)}
-                                style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Side Dishes */}
-                  {currentMeals.dinner?.sidedish?.length > 0 && (
-                    <div>
-                      <h5 style={{ marginBottom: "10px" }}>Side Dishes</h5>
-                      <table style={tableStyle}>
+                  <div className="meals-display-container" style={{ marginBottom: "15px" }}>
+                    <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Main Dishes</h5>
+                    <div className="meal-table-wrapper">
+                      <table className="meal-category-table">
                         <thead>
                           <tr>
                             <th style={thStyle}>Item</th>
@@ -1130,13 +1191,13 @@ function App() {
                           </tr>
                         </thead>
                         <tbody>
-                          {currentMeals.dinner.sidedish.map((item) => (
-                            <tr key={`dinner-sidedish-${item}`}>
+                          {currentMeals.dinner.main && currentMeals.dinner.main.map((item) => (
+                            <tr key={`dinner-main-${item}`}>
                               <td style={tdStyle}>{item}</td>
                               <td style={tdStyle}>
                                 <button 
-                                  onClick={() => handleRemoveMealItem("dinner", "sidedish", item)}
-                                  style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                                  className="meal-remove-btn"
+                                  onClick={() => handleRemoveMealItem("dinner", "main", item)}
                                 >
                                   Remove
                                 </button>
@@ -1145,6 +1206,115 @@ function App() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+
+                  {/* Side Dishes */}
+                  {currentMeals.dinner?.sidedish?.length > 0 && (
+                    <div className="meals-display-container">
+                      <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Side Dishes</h5>
+                      <div className="meal-table-wrapper">
+                        <table className="meal-category-table">
+                          <thead>
+                            <tr>
+                              <th style={thStyle}>Item</th>
+                              <th style={thStyle}>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentMeals.dinner.sidedish.map((item) => (
+                              <tr key={`dinner-sidedish-${item}`}>
+                                <td style={tdStyle}>{item}</td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    className="meal-remove-btn"
+                                    onClick={() => handleRemoveMealItem("dinner", "sidedish", item)}
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SNACK */}
+              {currentMeals && (
+                <div className="meal-section-snack" style={{ marginBottom: "20px" }}>
+                  <h4 className="meal-category-header" style={{ marginTop: 0 }}>🥜 Snack</h4>
+                  
+                  {/* Main Items */}
+                  <div className="meals-display-container" style={{ marginBottom: "15px" }}>
+                    <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Main Items</h5>
+                    <div className="meal-table-wrapper">
+                      <table className="meal-category-table">
+                        <thead>
+                          <tr>
+                            <th style={thStyle}>Item</th>
+                            <th style={thStyle}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentMeals.snack?.main && currentMeals.snack.main.length > 0 ? (
+                            currentMeals.snack.main.map((item) => (
+                              <tr key={`snack-main-${item}`}>
+                                <td style={tdStyle}>{item}</td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    className="meal-remove-btn"
+                                    onClick={() => handleRemoveMealItem("snack", "main", item)}
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan="2" style={{ ...tdStyle, textAlign: "center", fontStyle: "italic", color: "#999" }}>
+                                No items added yet. Add snack items to get started!
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Accompaniments */}
+                  {currentMeals.snack?.sidedish?.length > 0 && (
+                    <div className="meals-display-container">
+                      <h5 className="meal-item-title" style={{ marginBottom: "10px" }}>Accompaniments</h5>
+                      <div className="meal-table-wrapper">
+                        <table className="meal-category-table">
+                          <thead>
+                            <tr>
+                              <th style={thStyle}>Item</th>
+                              <th style={thStyle}>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentMeals.snack.sidedish.map((item) => (
+                              <tr key={`snack-sidedish-${item}`}>
+                                <td style={tdStyle}>{item}</td>
+                                <td style={tdStyle}>
+                                  <button 
+                                    className="meal-remove-btn"
+                                    onClick={() => handleRemoveMealItem("snack", "sidedish", item)}
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1172,6 +1342,7 @@ function App() {
       <option value="breakfast">Breakfast</option>
       <option value="lunch">Lunch</option>
       <option value="dinner">Dinner</option>
+      <option value="snack">Snack</option>
     </select>
   </div>
 
@@ -1207,6 +1378,13 @@ function App() {
         <>
           <option value="main">Main</option>
           <option value="sidedish">Side Dish</option>
+        </>
+      )}
+
+      {selectedMealType === "snack" && (
+        <>
+          <option value="main">Main Items</option>
+          <option value="sidedish">Accompaniments</option>
         </>
       )}
     </select>
@@ -1258,14 +1436,18 @@ function App() {
   Add Meal Items
 </button>
 </div>
+          </div>
         </div>
       )}
 
       {/* Update Groceries List Page */}
       {currentPage === "updateGroceries" && (
-        <div>
-          <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>Back to Home</button>
-          <h2>Update Groceries List</h2>
+        <div style={{ backgroundImage: "linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(139,195,74,0.1) 100%)", minHeight: "100vh", padding: "20px" }}>
+          <div className="container">
+            <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>← Back to Home</button>
+            <h2 style={{ color: "#2d3436", textShadow: "1px 1px 2px rgba(0,0,0,0.05)", marginBottom: "30px" }}>
+              ✏️ Update Groceries List
+            </h2>
 
           {/* Display Current Groceries by Category */}
           {groceryList && Object.keys(groceryList).length > 0 && (
@@ -1333,47 +1515,34 @@ function App() {
               Add Grocery Items
             </button>
           </div>
+          </div>
         </div>
       )}
 
       {/* Generate Meal Plan Page */}
       {currentPage === "mealPlan" && (
-        <div>
-          <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>Back to Home</button>
-          <h2>Generate Meal Plan</h2>
-
-          <button onClick={handleGenerateMealPlan} style={buttonStyle}>
-            Generate 7-Day Meal Plan
-          </button>
-
-          {mealPlan && (
-            <button
-              onClick={handleDownloadMealPlanPDF}
-              style={{ ...buttonStyle, backgroundColor: "#FF5722" }}
-            >
-              📄 Download Meal Plan PDF
-            </button>
-          )}
-
-          {mealPlan && (
-            <div style={{ marginTop: "30px" }}>
-              <h3>Weekly Meal Plan - {mealPlan.week_start} to {mealPlan.week_end}</h3>
-              {mealPlan.weekly_plan.map((day, index) => (
-                <div key={index} style={dayPlanStyle}>
-                  <h4>{day.day} - {day.date}</h4>
-                  {day.breakfast && (
-                    <p><b>Breakfast:</b> {day.breakfast.main} + {day.breakfast.sidedish}</p>
-                  )}
-                  {day.lunch && (
-                    <p><b>Lunch:</b> {day.lunch.day_main} + {day.lunch.second_main} + {day.lunch.poriyal}</p>
-                  )}
-                  {day.dinner && (
-                    <p><b>Dinner:</b> {day.dinner.main} + {day.dinner.sidedish}</p>
-                  )}
-                </div>
-              ))}
+        <MealPage 
+          mealPlan={mealPlan}
+          onBack={() => setCurrentPage("home")}
+          onDownloadPDF={handleDownloadMealPlanPDF}
+        />
+      )}
+      
+      {/* Show Generate Button when no meal plan exists */}
+      {currentPage === "mealPlan" && !mealPlan && (
+        <div style={{ backgroundImage: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)", minHeight: "100vh", padding: "40px 20px", textAlign: "center" }}>
+          <div className="container" style={{ maxWidth: "600px" }}>
+            <button onClick={() => setCurrentPage("home")} style={backButtonStyle}>← Back to Home</button>
+            <div style={{ backgroundColor: "white", padding: "40px", borderRadius: "12px", boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+              <h2 style={{ color: "#2d3436", marginBottom: "20px", fontSize: "36px" }}>📅 Generate Your Meal Plan</h2>
+              <p style={{ color: "#636e72", fontSize: "16px", marginBottom: "30px" }}>
+                Create a personalized 7-day meal plan based on your meal preferences
+              </p>
+              <button onClick={handleGenerateMealPlan} style={{ ...buttonStyle, width: "100%", padding: "18px 30px", fontSize: "18px" }}>
+                🍽️ Generate 7-Day Meal Plan
+              </button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
