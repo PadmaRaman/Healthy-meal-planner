@@ -108,6 +108,10 @@ DEFAULT_MEALS = {
         "main": ["Chapati", "Dosa"],
         "sidedish": ["Kurma", "Chutney"],
     },
+    "snack": {
+        "main": ["Murukku", "Mixture", "Chikhalwali"],
+        "sidedish": ["Coconut Chutney", "Peanut Chutney"],
+    },
 }
 
 DEFAULT_GROCERIES = {
@@ -122,9 +126,14 @@ DEFAULT_GROCERIES = {
 MEALS = load_json(MEAL_FILE) or DEFAULT_MEALS
 GROCERIES = load_json(GROCERIES_FILE) or DEFAULT_GROCERIES
 
+print(f"🔍 Loaded GROCERIES categories: {list(GROCERIES.keys())}")
+print(f"🔍 Total categories: {len(GROCERIES)}")
+
 # ensure files exist on first run
 save_json(MEAL_FILE, MEALS)
 save_json(GROCERIES_FILE, GROCERIES)
+
+print(f"✅ Data files saved")
 
 # --------------------------------------------------
 # ✅ Request Models
@@ -159,8 +168,17 @@ class GroceryItems(BaseModel):
     items: list
 
 
+class GroceryUpdate(BaseModel):
+    groceries: dict
+
+
 class RemoveMealRequest(BaseModel):
     meal_type: str
+    category: str
+    item_name: str
+
+
+class RemoveGroceryRequest(BaseModel):
     category: str
     item_name: str
 
@@ -443,6 +461,16 @@ def add_groceries(request: GroceryItems, username: str = Depends(verify_credenti
     save_json(GROCERIES_FILE, GROCERIES)
 
     return {"message": "Groceries added permanently", "groceries": GROCERIES}
+
+
+@app.post("/update-groceries")
+def update_groceries(request: GroceryUpdate, username: str = Depends(verify_credentials)):
+    global GROCERIES
+
+    GROCERIES = request.groceries
+    save_json(GROCERIES_FILE, GROCERIES)
+
+    return {"message": "Groceries updated permanently", "groceries": GROCERIES}
 
 
 @app.post("/remove-grocery/{category}/{item_name}")

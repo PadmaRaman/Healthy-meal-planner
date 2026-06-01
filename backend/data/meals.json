@@ -1,48 +1,35 @@
 {
   "breakfast": {
     "main": [
-      "Breakfast_main"
+      "Idli"
     ],
     "sidedish": [
-      "Sambar",
-      "Coconut Chutney"
+      "Sambar"
     ]
   },
   "lunch": {
     "monday_main": [
-      "Monday_meal"
+      "Mulai Keerai Kootu"
     ],
     "tuesday_main": [],
-    "wednesday_main": [
-      "wednesday_meal"
-    ],
-    "thursday_main": [
-      "Thursday_main"
-    ],
+    "wednesday_main": [],
+    "thursday_main": [],
     "friday_main": [],
-    "saturday_main": [
-      "Saturday_meal"
-    ],
-    "sunday_main": [
-      "Ghee Rice"
-    ],
+    "saturday_main": [],
+    "sunday_main": [],
     "second_main": [
-      "Appalam",
-      "Papad"
+      "Rasam"
     ],
     "poriyal": [
-      "Beans Poriyal",
-      "Carrot Poriyal"
+      "Potato Poriyal"
     ]
   },
   "dinner": {
     "main": [
-      "Chapati",
       "Dosa"
     ],
     "sidedish": [
-      "Kurma",
-      "Chutney"
+      "Coconut Chutney"
     ]
   },
   "snack": {

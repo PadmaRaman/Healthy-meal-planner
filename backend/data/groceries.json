@@ -1,10 +1,143 @@
 {
-  "Vegetables": [],
-  "Dhal Items": [
-    "Moong Dal"
+  "Samba Pettai Items": [
+    "Kadugu",
+    "Venthayam",
+    "Odacha Ulunthu",
+    "Jeera",
+    "Turmeric Powder",
+    "Milagu",
+    "Thaniya",
+    "Asafoetida"
   ],
   "Oil Items": [
+    "Butter",
+    "Ghee",
     "Groundnut Oil",
-    "sesame oil"
+    "Sesame Oil",
+    "Coconut Oil"
+  ],
+  "Other Items": [
+    "Puli",
+    "Red Milaga (Straight)",
+    "Red Milaga (Round)",
+    "Powdered Salt",
+    "Kal Uppu",
+    "Chilli Powder",
+    "Chat Masala Powder",
+    "Vellam",
+    "Garam Masala Powder",
+    "Coriander Powder",
+    "Biryani Powder",
+    "Jeera Powder"
+  ],
+  "Masala Items": [
+    "Krambu",
+    "Pattai",
+    "Elakkai",
+    "Lavangam",
+    "Soombu",
+    "Biryani Illai",
+    "Star Anice",
+    "Sukku"
+  ],
+  "Dry Fruits": [
+    "Cashew Nut",
+    "Almonds",
+    "Dry Grapes",
+    "Dry Grapes (Black)",
+    "Walnut",
+    "Kesari Powder",
+    "Dates"
+  ],
+  "Flour Items": [
+    "Arisi Maavu",
+    "Kadala Maavu",
+    "Kotumai Maavu",
+    "Rava",
+    "Rava (Fine)",
+    "Maida Maavu",
+    "Semiya",
+    "White Corn Flour"
+  ],
+  "Sundal Items": [
+    "Patani Sundal",
+    "Kondai Kadalai",
+    "Kondai Kadalai (Dry)",
+    "Karamani",
+    "Karamani (Dry)",
+    "Odacha Kadalai",
+    "Verkadalai Sundal",
+    "Rajma",
+    "Pachai Payiru Sundal"
+  ],
+  "Millets": [
+    "Kollu",
+    "Kambu",
+    "Thinai",
+    "Kuthurail valli"
+  ],
+  "Bathroom/Kitchen Items": [
+    "Bath Soap",
+    "Aerial",
+    "Rin/Surf excel",
+    "Toothbrush",
+    "Toothpaste",
+    "Floor Cleaner",
+    "Glass Cleaner",
+    "Sabeena",
+    "Pril",
+    "Vim Soap",
+    "Scrubber (Metal)",
+    "Scrubber (Plastic)",
+    "Cloth Clips",
+    "Carry Bags (Small)",
+    "Carry Bags (Medium)",
+    "Carry Bags (Large)",
+    "Hand Wash",
+    "Body Wash",
+    "Dish Wash Soap",
+    "Cleaning Cloth"
+  ],
+  "Pooja Items": [
+    "Turmeric Powder",
+    "Kumkumam",
+    "Karpooram",
+    "Oothupathi",
+    "Thiri",
+    "Match Box",
+    "Sambarani",
+    "Pooja Oil",
+    "Verali Manjal",
+    "Paaku",
+    "Santhanam",
+    "Viboothi",
+    "Kalkandu"
+  ],
+  "Dhal Items": [
+    "Kadala Paruppu",
+    "Thuvaram Paruppu",
+    "Paitham Paruppu",
+    "Uluntham Paruppu"
+  ],
+  "Rice Items": [
+    "Raw Rice",
+    "Idli Rice",
+    "Sona Masori Rice",
+    "Basmati Rice",
+    "Brown Rice"
+  ],
+  "Vegetables": [
+    "Carrot",
+    "Beans",
+    "Potato",
+    "Onion",
+    "Tomato",
+    "Garlic",
+    "Ginger",
+    "Cabbage",
+    "Cauliflower",
+    "Cucumber",
+    "Spinach",
+    "Beetroot"
   ]
 }

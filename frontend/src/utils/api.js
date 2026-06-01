@@ -2,9 +2,9 @@ import { getBasicAuth, clearBasicAuth } from "./auth";
 
 const API_BASE_URL =
   process.env.REACT_APP_API_URL ||
-  "https://healthy-meal-planner-0s0b.onrender.com";
+  "http://localhost:8000";
 
-  //const API_BASE_URL = "http://localhost:8000";
+  //const API_BASE_URL = "https://healthy-meal-planner-0s0b.onrender.com";
 
 export async function apiFetch(endpoint, options = {}) {
   const auth = getBasicAuth();

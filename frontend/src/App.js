@@ -23,6 +23,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState("home");
   const [mealPlan, setMealPlan] = useState(null);
   const [groceryList, setGroceryList] = useState({});
+  const [groceryInputs, setGroceryInputs] = useState({});
   const [selectedGroceries, setSelectedGroceries] = useState({});
   const [generatedGroceries, setGeneratedGroceries] = useState({});
   const [currentMeals, setCurrentMeals] = useState(null);
@@ -150,6 +151,67 @@ function App() {
     }
   };
 
+  // Handle Update Groceries
+  const handleUpdateGroceries = async () => {
+    try {
+      const response = await apiFetch("/update-groceries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ groceries: groceryInputs })
+      });
+
+      const result = await response.json();
+      setGroceryList(result.groceries);
+      
+      // Sync UI form inputs with backend data
+      setGroceryInputs(result.groceries);
+      
+      alert("✅ " + result.message + "\n📊 Groceries data synchronized!");
+    } catch (error) {
+      alert(`❌ Error updating groceries: ${error.message}`);
+      console.error("Error:", error);
+    }
+  };
+
+  // Download Grocery Payload as JSON
+  const handleDownloadGroceryPayload = () => {
+    const payload = groceryInputs;
+
+    // Create JSON string with pretty formatting
+    const jsonContent = JSON.stringify(payload, null, 2);
+
+    // Create blob and download
+    const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `grocery-payload-${new Date().toISOString().split('T')[0]}.json`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Handle Upload Grocery JSON
+  const handleUploadGroceryJSON = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result);
+        setGroceryInputs(jsonData);
+        alert("✅ Grocery JSON file loaded successfully!");
+      } catch (error) {
+        alert(`❌ Error parsing JSON file: ${error.message}`);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // Auto-fetch groceries when page changes to groceries or updateGroceries
   useEffect(() => {
     if (currentPage === "groceries") {
@@ -157,6 +219,13 @@ function App() {
     }
     if (currentPage === "updateGroceries") {
       handleFetchCurrentGroceries();
+    }
+  }, [currentPage]);
+
+  // Auto-fetch meals when page changes
+  useEffect(() => {
+    if (currentPage === "inputJson") {
+      handleFetchCurrentMeals();
     }
   }, [currentPage]);
 
@@ -205,7 +274,9 @@ function App() {
       }
       const data = await response.json();
       setGroceryList(data.groceries);
+      setGroceryInputs(data.groceries);
       setSelectedCategory(Object.keys(data.groceries)[0] || "");
+      alert("✅ Groceries data refreshed successfully!");
     } catch (error) {
       alert(`Error loading groceries: ${error.message}`);
       console.error("Error:", error);
@@ -236,6 +307,7 @@ function App() {
       }
       if (result.groceries) {
         setGroceryList(result.groceries);
+        setGroceryInputs(result.groceries);
       } else {
         alert("Error: Could not add groceries. " + JSON.stringify(result));
       }
@@ -248,7 +320,11 @@ function App() {
 
   const handleRemoveGroceryItem = async (category, itemName) => {
     try {
-      const response = await apiFetch(`/remove-grocery/${category}/${itemName}`, {
+      // URL encode the parameters to handle special characters
+      const encodedCategory = encodeURIComponent(category);
+      const encodedItem = encodeURIComponent(itemName);
+      
+      const response = await apiFetch(`/remove-grocery/${encodedCategory}/${encodedItem}`, {
         method: "POST",
         headers: {
           //"Authorization": basicAuth
@@ -258,6 +334,8 @@ function App() {
       const result = await response.json();
       if (result.groceries) {
         setGroceryList(result.groceries);
+        setGroceryInputs(result.groceries);
+        alert(`✅ ${itemName} removed successfully!`);
       }
     } catch (error) {
       alert(`Error removing grocery: ${error.message}`);
@@ -288,7 +366,7 @@ function App() {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `groceries-list-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `fitmeal-groceries-${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -306,11 +384,11 @@ function App() {
     
     // Title
     doc.setFontSize(18);
-    doc.text("Healthy Meal Planner", 20, 20);
+    doc.text("FitMeal South Grocery List", 20, 20);
     
     // Subtitle
     doc.setFontSize(12);
-    doc.text("Groceries List", 20, 30);
+    doc.text("Generated Shopping List", 20, 30);
     
     // Date
     doc.setFontSize(10);
@@ -365,7 +443,7 @@ function App() {
     doc.text("Generated from Healthy South Indian Meal Planner", margin, pageHeight - 10);
     
     // Save PDF
-    const fileName = `groceries-list-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `fitmeal-groceries-${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(fileName);
   };
 
@@ -386,6 +464,8 @@ function App() {
       lunch_poriyal: mealInputs.lunch_poriyal.split(",").map(item => item.trim()).filter(item => item),
       dinner_main: mealInputs.dinner_main.split(",").map(item => item.trim()).filter(item => item),
       dinner_sidedish: mealInputs.dinner_sidedish.split(",").map(item => item.trim()).filter(item => item),
+      snack_main: mealInputs.snack_main.split(",").map(item => item.trim()).filter(item => item),
+      snack_sidedish: mealInputs.snack_sidedish.split(",").map(item => item.trim()).filter(item => item),
     };
 
     // Create JSON string with pretty formatting
@@ -396,7 +476,7 @@ function App() {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `meal-payload-${new Date().toISOString().split('T')[0]}.json`);
+    link.setAttribute("download", `fitmeal-meal-payload-${new Date().toISOString().split('T')[0]}.json`);
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -672,11 +752,6 @@ function App() {
 
     doc.setFont(undefined, "normal");
 
-    if (day.day_main) {
-      doc.text(`${day.day} Main: ${day.day_main}`, 25, y);
-      y += 6;
-    }
-
     if (day.breakfast && day.breakfast.main) {
       const breakfastSidedish = day.breakfast.sidedish || "";
       doc.text(`Breakfast: ${day.breakfast.main} + ${breakfastSidedish}`, 25, y);
@@ -693,6 +768,12 @@ function App() {
     if (day.dinner && day.dinner.main) {
       const dinnerSidedish = day.dinner.sidedish || "";
       doc.text(`Dinner: ${day.dinner.main} + ${dinnerSidedish}`, 25, y);
+      y += 6;
+    }
+
+    if (day.snack && day.snack.main) {
+      const snackSidedish = day.snack.sidedish || "";
+      doc.text(`Snack: ${day.snack.main} + ${snackSidedish}`, 25, y);
       y += 6;
     }
 
@@ -814,7 +895,7 @@ const tableStyle = {
         <div className="container-fluid">
           <div className="d-flex align-items-center">
             <img
-              src="/fitmeal_south_logo.png"
+              src="/fitmeal_south_logo.svg"
               alt="FitMeal South Logo"
               style={{ height: "40px", width: "auto", marginRight: "10px" }}
             />
@@ -986,17 +1067,146 @@ const tableStyle = {
               🍽️ Update Meal Data
             </h2>
 
-          <button 
-            onClick={handleDownloadMealPayload} 
-            style={{ ...buttonStyle, backgroundColor: "#2196F3", marginBottom: "20px" }}
-          >
-            ⬇️ Download Latest Payload (JSON)
-          </button>
+          <div style={{ marginBottom: "20px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button 
+              onClick={handleDownloadMealPayload} 
+              style={{ ...buttonStyle, backgroundColor: "#2196F3", flex: 1, minWidth: "200px" }}
+            >
+              ⬇️ Download Latest Payload (JSON)
+            </button>
+            <button
+              onClick={handleFetchCurrentMeals}
+              style={{ ...buttonStyle, backgroundColor: "#009688", flex: 1, minWidth: "200px" }}
+            >
+              🔄 Refresh Meals
+            </button>
+            <button 
+              onClick={handleUpdateMeals} 
+              style={{ ...buttonStyle, backgroundColor: "#4CAF50", flex: 1, minWidth: "200px" }}
+            >
+              💾 Save All Changes
+            </button>
+          </div>
 
-          {/* Display Current Meals by Type and Category */}
+          {/* Add New Meal Items - COMES FIRST */}
+          <div style={{ backgroundColor: "white", padding: "20px", borderRadius: "8px", marginBottom: "30px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            <h3 style={{ color: "#FF9800", marginTop: 0, fontSize: "20px" }}>➕ Add New Meal Items</h3>
+
+            {/* Meal Type */}
+            <div style={formGroupStyle}>
+              <label style={{ fontWeight: "600" }}>Select Meal Type:</label>
+              <select 
+                value={selectedMealType} 
+                onChange={(e) => {
+                  setSelectedMealType(e.target.value);
+                  setSelectedMealCategory("");
+                  setSelectedDay("");
+                }}
+                style={{ ...inputStyle, marginTop: "8px" }}
+              >
+                <option value="">-- Select a meal type --</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snack">Snack</option>
+              </select>
+            </div>
+
+            {/* Category */}
+            <div style={formGroupStyle}>
+              <label style={{ fontWeight: "600" }}>Select Category:</label>
+              <select 
+                value={selectedMealCategory} 
+                onChange={(e) => {
+                  setSelectedMealCategory(e.target.value);
+                  setSelectedDay("");
+                }}
+                style={{ ...inputStyle, marginTop: "8px" }}
+              >
+                <option value="">-- Select category --</option>
+
+                {selectedMealType === "breakfast" && (
+                  <>
+                    <option value="main">Main</option>
+                    <option value="sidedish">Side Dish</option>
+                  </>
+                )}
+
+                {selectedMealType === "lunch" && (
+                  <>
+                    <option value="main">Main</option>
+                    <option value="second_main">Second Main</option>
+                    <option value="poriyal">Poriyal</option>
+                  </>
+                )}
+
+                {selectedMealType === "dinner" && (
+                  <>
+                    <option value="main">Main</option>
+                    <option value="sidedish">Side Dish</option>
+                  </>
+                )}
+
+                {selectedMealType === "snack" && (
+                  <>
+                    <option value="main">Main Items</option>
+                    <option value="sidedish">Accompaniments</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            {/* Day Selector (only for lunch main) */}
+            {selectedMealType === "lunch" && selectedMealCategory === "main" && (
+              <div style={formGroupStyle}>
+                <label style={{ fontWeight: "600" }}>Select Day:</label>
+                <select
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  style={{ ...inputStyle, marginTop: "8px" }}
+                >
+                  <option value="">-- Select day --</option>
+                  <option value="monday">Monday</option>
+                  <option value="tuesday">Tuesday</option>
+                  <option value="wednesday">Wednesday</option>
+                  <option value="thursday">Thursday</option>
+                  <option value="friday">Friday</option>
+                  <option value="saturday">Saturday</option>
+                  <option value="sunday">Sunday</option>
+                </select>
+              </div>
+            )}
+
+            {/* Input */}
+            <div style={formGroupStyle}>
+              <label style={{ fontWeight: "600" }}>Add New Items (comma-separated):</label>
+              <input
+                type="text"
+                placeholder="e.g., Idli, Dosa, Upma"
+                value={newMealItem}
+                onChange={(e) => setNewMealItem(e.target.value)}
+                style={{ ...inputStyle, marginTop: "8px" }}
+              />
+            </div>
+
+            {/* Button */}
+            <button 
+              onClick={handleAddMealItem}
+              style={{ ...buttonStyle, width: "100%", backgroundColor: "#4CAF50" }}
+              disabled={
+                !selectedMealType ||
+                !selectedMealCategory ||
+                (selectedMealType === "lunch" && selectedMealCategory === "main" && !selectedDay)
+              }
+            >
+              ✅ Add Meal Items
+            </button>
+          </div>
+
+          {/* Display Current Meals by Type and Category - COMES AFTER */}
           {currentMeals && (
-            <div style={{ marginBottom: "30px", backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px", textAlign: "center" }}>
-              <h3>Current Meals in JSON</h3>
+            <div style={{ marginBottom: "30px" }}>
+              <h3 style={{ color: "#2d3436", marginBottom: "20px", fontSize: "20px" }}>📋 Current Meals in JSON</h3>
 
               {/* BREAKFAST */}
               {currentMeals.breakfast && (
@@ -1022,8 +1232,11 @@ const tableStyle = {
                                 <button 
                                   className="meal-remove-btn"
                                   onClick={() => handleRemoveMealItem("breakfast", "main", item)}
+                                  style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                 >
-                                  Remove
+                                  🗑️ Remove
                                 </button>
                               </td>
                             </tr>
@@ -1053,8 +1266,11 @@ const tableStyle = {
                                   <button 
                                     className="meal-remove-btn"
                                     onClick={() => handleRemoveMealItem("breakfast", "sidedish", item)}
+                                    style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                   >
-                                    Remove
+                                    🗑️ Remove
                                   </button>
                                 </td>
                               </tr>
@@ -1095,8 +1311,11 @@ const tableStyle = {
                                       <button 
                                         className="meal-remove-btn"
                                         onClick={() => handleRemoveMealItem("lunch", day, item)}
+                                        style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                        onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                        onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                       >
-                                        Remove
+                                        🗑️ Remove
                                       </button>
                                     </td>
                                   </tr>
@@ -1129,8 +1348,11 @@ const tableStyle = {
                                   <button 
                                     className="meal-remove-btn"
                                     onClick={() => handleRemoveMealItem("lunch", "second_main", item)}
+                                    style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                   >
-                                    Remove
+                                    🗑️ Remove
                                   </button>
                                 </td>
                               </tr>
@@ -1161,8 +1383,11 @@ const tableStyle = {
                                   <button 
                                     className="meal-remove-btn"
                                     onClick={() => handleRemoveMealItem("lunch", "poriyal", item)}
+                                    style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                   >
-                                    Remove
+                                    🗑️ Remove
                                   </button>
                                 </td>
                               </tr>
@@ -1199,8 +1424,11 @@ const tableStyle = {
                                 <button 
                                   className="meal-remove-btn"
                                   onClick={() => handleRemoveMealItem("dinner", "main", item)}
+                                  style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                  onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                  onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                 >
-                                  Remove
+                                  🗑️ Remove
                                 </button>
                               </td>
                             </tr>
@@ -1230,8 +1458,11 @@ const tableStyle = {
                                   <button 
                                     className="meal-remove-btn"
                                     onClick={() => handleRemoveMealItem("dinner", "sidedish", item)}
+                                    style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                   >
-                                    Remove
+                                    🗑️ Remove
                                   </button>
                                 </td>
                               </tr>
@@ -1269,8 +1500,11 @@ const tableStyle = {
                                   <button 
                                     className="meal-remove-btn"
                                     onClick={() => handleRemoveMealItem("snack", "main", item)}
+                                    style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                   >
-                                    Remove
+                                    🗑️ Remove
                                   </button>
                                 </td>
                               </tr>
@@ -1307,8 +1541,11 @@ const tableStyle = {
                                   <button 
                                     className="meal-remove-btn"
                                     onClick={() => handleRemoveMealItem("snack", "sidedish", item)}
+                                    style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                                   >
-                                    Remove
+                                    🗑️ Remove
                                   </button>
                                 </td>
                               </tr>
@@ -1322,121 +1559,6 @@ const tableStyle = {
               )}
             </div>
           )}
-
-          {/* Add New Meal Items */}
-<div style={{ backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px" }}>
-  <h3>Add New Meal Items</h3>
-
-  {/* Meal Type */}
-  <div style={formGroupStyle}>
-    <label>Select Meal Type:</label>
-    <select 
-      value={selectedMealType} 
-      onChange={(e) => {
-        setSelectedMealType(e.target.value);
-        setSelectedMealCategory("");
-        setSelectedDay("");
-      }}
-      style={{ ...inputStyle, marginTop: "5px" }}
-    >
-      <option value="">-- Select a meal type --</option>
-      <option value="breakfast">Breakfast</option>
-      <option value="lunch">Lunch</option>
-      <option value="dinner">Dinner</option>
-      <option value="snack">Snack</option>
-    </select>
-  </div>
-
-  {/* Category */}
-  <div style={formGroupStyle}>
-    <label>Select Category:</label>
-    <select 
-      value={selectedMealCategory} 
-      onChange={(e) => {
-        setSelectedMealCategory(e.target.value);
-        setSelectedDay("");
-      }}
-      style={{ ...inputStyle, marginTop: "5px" }}
-    >
-      <option value="">-- Select category --</option>
-
-      {selectedMealType === "breakfast" && (
-        <>
-          <option value="main">Main</option>
-          <option value="sidedish">Side Dish</option>
-        </>
-      )}
-
-      {selectedMealType === "lunch" && (
-        <>
-          <option value="main">Main</option>
-          <option value="second_main">Second Main</option>
-          <option value="poriyal">Poriyal</option>
-        </>
-      )}
-
-      {selectedMealType === "dinner" && (
-        <>
-          <option value="main">Main</option>
-          <option value="sidedish">Side Dish</option>
-        </>
-      )}
-
-      {selectedMealType === "snack" && (
-        <>
-          <option value="main">Main Items</option>
-          <option value="sidedish">Accompaniments</option>
-        </>
-      )}
-    </select>
-  </div>
-
-  {/* Day Selector (only for lunch main) */}
-  {selectedMealType === "lunch" && selectedMealCategory === "main" && (
-    <div style={formGroupStyle}>
-      <label>Select Day:</label>
-      <select
-        value={selectedDay}
-        onChange={(e) => setSelectedDay(e.target.value)}
-        style={{ ...inputStyle, marginTop: "5px" }}
-      >
-        <option value="">-- Select day --</option>
-        <option value="monday">Monday</option>
-        <option value="tuesday">Tuesday</option>
-        <option value="wednesday">Wednesday</option>
-        <option value="thursday">Thursday</option>
-        <option value="friday">Friday</option>
-        <option value="saturday">Saturday</option>
-        <option value="sunday">Sunday</option>
-      </select>
-    </div>
-  )}
-
-  {/* Input */}
-  <div style={formGroupStyle}>
-    <label>Add New Items (comma-separated):</label>
-    <input
-      type="text"
-      placeholder="e.g., Idli, Dosa, Upma"
-      value={newMealItem}
-      onChange={(e) => setNewMealItem(e.target.value)}
-      style={inputStyle}
-    />
-  </div>
-
-  {/* Button */}
-  <button 
-  onClick={handleAddMealItem}
-  style={buttonStyle}
-  disabled={
-    !selectedMealType ||
-    !selectedMealCategory ||
-    (selectedMealType === "lunch" && selectedMealCategory === "main" && !selectedDay)
-  }
->
-  Add Meal Items
-</button>
-</div>
           </div>
         </div>
       )}
@@ -1450,30 +1572,99 @@ const tableStyle = {
               ✏️ Update Groceries List
             </h2>
 
-          {/* Display Current Groceries by Category */}
+          {/* JSON Download, Upload and Refresh Buttons */}
+          <div style={{ marginBottom: "20px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button 
+              onClick={handleDownloadGroceryPayload} 
+              style={{ ...buttonStyle, backgroundColor: "#2196F3", flex: 1, minWidth: "200px" }}
+            >
+              ⬇️ Download Latest Payload (JSON)
+            </button>
+            <button
+              onClick={handleFetchCurrentGroceries}
+              style={{ ...buttonStyle, backgroundColor: "#009688", flex: 1, minWidth: "200px" }}
+            >
+              🔄 Refresh Groceries
+            </button>
+            <label style={{ ...buttonStyle, backgroundColor: "#FF9800", flex: 1, minWidth: "200px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", margin: "10px", textDecoration: "none" }}>
+              📤 Upload JSON File
+              <input 
+                type="file" 
+                accept=".json" 
+                onChange={handleUploadGroceryJSON}
+                style={{ display: "none" }}
+              />
+            </label>
+            <button 
+              onClick={handleUpdateGroceries} 
+              style={{ ...buttonStyle, backgroundColor: "#4CAF50", flex: 1, minWidth: "200px" }}
+            >
+              💾 Save All Changes
+            </button>
+          </div>
+
+          {/* Add New Items to a Category - COMES FIRST */}
+          <div style={{ backgroundColor: "white", padding: "20px", borderRadius: "8px", marginBottom: "30px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            <h3 style={{ color: "#4CAF50", marginTop: 0, fontSize: "20px" }}>➕ Add New Items to a Category</h3>
+            <div style={formGroupStyle}>
+              <label style={{ fontWeight: "600" }}>Select Category:</label>
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{ ...inputStyle, marginTop: "8px" }}
+              >
+                <option value="">-- Select a category --</option>
+                {Object.keys(groceryList).map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={formGroupStyle}>
+              <label style={{ fontWeight: "600" }}>Add New Grocery Items (comma-separated):</label>
+              <input
+                type="text"
+                placeholder="e.g., Tomato, Onion, Garlic"
+                value={newGroceryItem}
+                onChange={(e) => setNewGroceryItem(e.target.value)}
+                style={{ ...inputStyle, marginTop: "8px" }}
+              />
+            </div>
+
+            <button 
+              onClick={handleAddGroceryItem} 
+              style={{ ...buttonStyle, width: "100%", backgroundColor: "#4CAF50" }}
+            >
+              ✅ Add Grocery Items
+            </button>
+          </div>
+
+          {/* Display Current Groceries by Category - COMES AFTER */}
           {groceryList && Object.keys(groceryList).length > 0 && (
-            <div style={{ marginBottom: "30px", backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px" }}>
-              <h3>Current Groceries in JSON</h3>
+            <div style={{ marginBottom: "30px" }}>
+              <h3 style={{ color: "#2d3436", marginBottom: "20px", fontSize: "20px" }}>📋 Current Groceries in JSON</h3>
               {Object.keys(groceryList).map((category) => (
-                <div key={category} style={{ marginBottom: "20px", backgroundColor: "white", padding: "10px", borderRadius: "3px", border: "1px solid #ddd" }}>
-                  <h4 style={{ color: "#4CAF50", marginTop: 0 }}>{category}</h4>
-                  <table style={tableStyle}>
+                <div key={category} style={{ marginBottom: "20px", backgroundColor: "white", padding: "15px", borderRadius: "8px", border: "2px solid #4CAF50", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+                  <h4 style={{ color: "#4CAF50", marginTop: 0, fontSize: "16px", textTransform: "uppercase", letterSpacing: "1px" }}>{category}</h4>
+                  <table style={{ ...tableStyle, width: "100%", marginLeft: 0, marginRight: 0 }}>
                     <thead>
                       <tr>
                         <th style={thStyle}>Item</th>
-                        <th style={thStyle}>Action</th>
+                        <th style={{ ...thStyle, width: "120px", textAlign: "center" }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {groceryList[category].map((item) => (
                         <tr key={`${category}-${item}`}>
                           <td style={tdStyle}>{item}</td>
-                          <td style={tdStyle}>
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
                             <button 
                               onClick={() => handleRemoveGroceryItem(category, item)}
-                              style={{ padding: "8px 12px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}
+                              style={{ padding: "8px 16px", backgroundColor: "#f44336", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", transition: "all 0.3s ease" }}
+                              onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
+                              onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
                             >
-                              Remove
+                              🗑️ Remove
                             </button>
                           </td>
                         </tr>
@@ -1484,38 +1675,6 @@ const tableStyle = {
               ))}
             </div>
           )}
-
-          <div style={{ backgroundColor: "#f0f0f0", padding: "15px", borderRadius: "4px" }}>
-            <h3>Add New Items to a Category</h3>
-            <div style={formGroupStyle}>
-              <label>Select Category:</label>
-              <select 
-                value={selectedCategory} 
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                style={{ ...inputStyle, marginTop: "5px" }}
-              >
-                <option value="">-- Select a category --</option>
-                {Object.keys(groceryList).map((category) => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>Add New Grocery Items (comma-separated):</label>
-              <input
-                type="text"
-                placeholder="e.g., Tomato, Onion, Garlic"
-                value={newGroceryItem}
-                onChange={(e) => setNewGroceryItem(e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-
-            <button onClick={handleAddGroceryItem} style={buttonStyle}>
-              Add Grocery Items
-            </button>
-          </div>
           </div>
         </div>
       )}

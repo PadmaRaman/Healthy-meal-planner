@@ -1,0 +1,31 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#4CAF50" stroke="#2d3436" stroke-width="2"/>
+  
+  <!-- Inner circle -->
+  <circle cx="100" cy="100" r="85" fill="#66BB6A"/>
+  
+  <!-- Fork left -->
+  <path d="M 60 70 L 65 130 M 55 70 L 55 80 M 60 70 L 60 80 M 65 70 L 65 80" 
+        stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+  
+  <!-- Spoon right -->
+  <path d="M 140 70 Q 145 70 145 85 Q 145 100 140 105 L 140 130" 
+        stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 135 70 L 145 70" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Leaf accent -->
+  <path d="M 100 50 Q 110 55 115 70" 
+        stroke="#FFC107" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M 100 50 Q 90 55 85 70" 
+        stroke="#FFC107" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  
+  <!-- Center text background -->
+  <rect x="60" y="110" width="80" height="55" rx="8" fill="rgba(255,255,255,0.15)"/>
+  
+  <!-- Text -->
+  <text x="100" y="135" font-family="Arial, sans-serif" font-size="18" font-weight="bold" 
+        text-anchor="middle" fill="#ffffff">FitMeal</text>
+  <text x="100" y="155" font-family="Arial, sans-serif" font-size="14" font-weight="bold" 
+        text-anchor="middle" fill="#FFC107">South</text>
+</svg>

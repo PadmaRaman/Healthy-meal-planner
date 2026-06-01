@@ -20,6 +20,7 @@
   - Checkbox selection for each item
   - "Generate Grocery List" button
   - CSV & PDF download buttons
+  - Should work from both FrontEnd and API
   - Error handling with try-catch
 - **Status**: ✅ Working
 
